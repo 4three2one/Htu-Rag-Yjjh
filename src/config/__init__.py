@@ -3,7 +3,18 @@ import json
 import yaml
 from pathlib import Path
 from src.utils.logging_config import logger
+import os
+from dotenv import load_dotenv
 
+
+# 当前脚本的绝对路径（包含文件名）
+script_path = os.path.abspath(__file__)
+
+script_dir = os.path.dirname(script_path)
+# 项目目录
+project_base_dir =os.path.dirname(os.path.dirname(script_dir))
+
+load_dotenv(os.path.join(project_base_dir, "src/.env"))
 DEFAULT_MOCK_API = 'this_is_mock_api_key_in_frontend'
 
 class SimpleConfig(dict):
@@ -87,12 +98,12 @@ class Config(SimpleConfig):
         从 models.yaml 和 models.private.yml 中更新 MODEL_NAMES
         """
 
-        with open(Path("src/static/models.yaml"), encoding='utf-8') as f:
+        with open(Path(f"{project_base_dir}/src/static/models.yaml"), encoding='utf-8') as f:
             _models = yaml.safe_load(f)
 
         # 尝试打开一个 models.private.yml 文件，用来覆盖 models.yaml 中的配置
         try:
-            with open(Path("src/static/models.private.yml"), encoding='utf-8') as f:
+            with open(Path(f"{project_base_dir}/src/static/models.private.yml"), encoding='utf-8') as f:
                 _models_private = yaml.safe_load(f)
         except FileNotFoundError:
             _models_private = {}
@@ -110,7 +121,7 @@ class Config(SimpleConfig):
             "EMBED_MODEL_INFO": self.embed_model_names,
             "RERANKER_LIST": self.reranker_names,
         }
-        with open(Path("src/static/models.private.yml"), 'w', encoding='utf-8') as f:
+        with open(Path(f"{project_base_dir}/src/static/models.private.yml"), 'w', encoding='utf-8') as f:
             yaml.dump(_models, f, indent=2, allow_unicode=True)
 
     def handle_self(self):
