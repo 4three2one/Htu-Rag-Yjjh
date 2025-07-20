@@ -211,7 +211,7 @@ export const knowledgeManagementApi = {
    * 获取所有知识库
    * @returns {Promise} - 知识库列表
    */
-  getDatabases: async () => {
+  getKnowledge: async () => {
     checkAdminPermission()
     return apiGet('/api/knowledge/', {}, true)
   },
@@ -221,7 +221,7 @@ export const knowledgeManagementApi = {
    * @param {Object} databaseData - 知识库数据
    * @returns {Promise} - 创建结果
    */
-  createDatabase: async (databaseData) => {
+  createKnowledge: async (databaseData) => {
     checkAdminPermission()
     return apiPost('/api/knowledge/', databaseData, {}, true)
   },

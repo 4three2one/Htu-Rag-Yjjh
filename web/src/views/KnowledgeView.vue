@@ -107,7 +107,7 @@ const newKnowledge = reactive({
 
 const loadKnowledgeItems = () => {
   state.loading = true
-  knowledgeManagementApi.getKnowledgeItems()
+  knowledgeManagementApi.getKnowledge()
     .then(data => {
       console.log('API返回数据:', data)
       console.log('knowledge_items:', data.knowledge_items)
@@ -146,7 +146,7 @@ const createKnowledge = () => {
     type: newKnowledge.type || 'document',
   }
 
-  knowledgeManagementApi.createKnowledgeItem(requestData)
+  knowledgeManagementApi.createKnowledge(requestData)
     .then(data => {
       console.log('创建成功:', data)
       loadKnowledgeItems()
