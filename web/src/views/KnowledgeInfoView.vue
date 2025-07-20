@@ -94,14 +94,14 @@
           </div>
         </div>
 
-        <div class="ocr-config">
+        <!-- <div class="ocr-config">
           <a-form layout="horizontal">
             <a-form-item label="使用OCR" name="enable_ocr">
               <a-select v-model:value="chunkParams.enable_ocr" :options="enable_ocr_options" style="width: 200px;" />
               <span class="param-description">启用OCR功能，支持PDF文件的文本提取</span>
             </a-form-item>
           </a-form>
-        </div>
+        </div> -->
 
         <!-- 文件上传区域 -->
         <div class="upload" v-if="uploadMode === 'file'">
