@@ -68,6 +68,9 @@ importers:
       pinia:
         specifier: ^3.0.2
         version: 3.0.2(vue@3.5.14)
+      pnpm:
+        specifier: ^10.13.1
+        version: 10.13.1
       sigma:
         specifier: ^3.0.1
         version: 3.0.2(graphology-types@0.24.8)
@@ -1893,6 +1896,11 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  pnpm@10.13.1:
+    resolution: {integrity: sha512-N+vxpcejDV+r4MXfRO6NpMllygxa89urKMOhaBtwolYhjQXIHJwNz3Z+9rhVHrW5YAQrntQwDFkkIzY3fgHPrQ==}
+    engines: {node: '>=18.12'}
+    hasBin: true
 
   postcss-selector-parser@6.1.2:
     resolution: {integrity: sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==}
@@ -4319,6 +4327,8 @@ snapshots:
     dependencies:
       '@vue/devtools-api': 7.7.6
       vue: 3.5.14
+
+  pnpm@10.13.1: {}
 
   postcss-selector-parser@6.1.2:
     dependencies:

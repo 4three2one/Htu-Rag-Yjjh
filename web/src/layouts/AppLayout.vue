@@ -5,7 +5,7 @@ import {
   GithubOutlined,
   ExclamationCircleOutlined,
 } from '@ant-design/icons-vue'
-import { Bot, Waypoints, LibraryBig, Settings } from 'lucide-vue-next';
+import { Bot, Waypoints, LibraryBig, Settings, BookOpen } from 'lucide-vue-next';
 import { onLongPress } from '@vueuse/core'
 
 import { useConfigStore } from '@/stores/config'
@@ -103,6 +103,11 @@ const mainList = [{
     path: '/database',
     icon: LibraryBig,
     activeIcon: LibraryBig,
+  }, {
+    name: '知识管理',
+    path: '/knowledge',
+    icon: BookOpen,
+    activeIcon: BookOpen,
   }
 ]
 </script>
@@ -181,6 +186,7 @@ const mainList = [{
     <div class="header-mobile">
       <RouterLink to="/chat" class="nav-item" active-class="active">对话</RouterLink>
       <RouterLink to="/database" class="nav-item" active-class="active">知识</RouterLink>
+      <RouterLink to="/knowledge" class="nav-item" active-class="active">管理</RouterLink>
       <RouterLink to="/setting" class="nav-item" active-class="active">设置</RouterLink>
     </div>
     <router-view v-slot="{ Component, route }" id="app-router-view">

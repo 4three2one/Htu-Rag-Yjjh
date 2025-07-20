@@ -77,6 +77,25 @@ const router = createRouter({
       ]
     },
     {
+      path: '/knowledge',
+      name: 'knowledge',
+      component: AppLayout,
+      children: [
+        {
+          path: '',
+          name: 'KnowledgeComp',
+          component: () => import('../views/KnowledgeView.vue'),
+          meta: { keepAlive: true, requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: ':knowledge_id',
+          name: 'KnowledgeInfoComp',
+          component: () => import('../views/KnowledgeInfoView.vue'),
+          meta: { keepAlive: false, requiresAuth: true, requiresAdmin: true }
+        }
+      ]
+    },
+    {
       path: '/setting',
       name: 'setting',
       component: AppLayout,
