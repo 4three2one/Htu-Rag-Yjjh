@@ -88,10 +88,10 @@ const state = reactive({
 const knowledgeTypeOptions = computed(() => {
   return [
     { label: '文档知识', value: 'document' },
-    { label: '链接知识', value: 'link' },
-    { label: '笔记知识', value: 'note' },
-    { label: 'FAQ知识', value: 'faq' },
-    { label: '其他', value: 'other' },
+    // { label: '链接知识', value: 'link' },
+    // { label: '笔记知识', value: 'note' },
+    // { label: 'FAQ知识', value: 'faq' },
+    // { label: '其他', value: 'other' },
   ]
 })
 
