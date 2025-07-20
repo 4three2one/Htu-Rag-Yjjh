@@ -208,100 +208,140 @@ export const knowledgeBaseApi = {
 // 知识管理API
 export const knowledgeManagementApi = {
   /**
-   * 获取所有知识项
-   * @returns {Promise} - 知识项列表
+   * 获取所有知识库
+   * @returns {Promise} - 知识库列表
    */
-  getKnowledgeItems: async () => {
+  getDatabases: async () => {
     checkAdminPermission()
     return apiGet('/api/knowledge/', {}, true)
   },
 
   /**
-   * 创建知识项
-   * @param {Object} knowledgeData - 知识项数据
+   * 创建知识库
+   * @param {Object} databaseData - 知识库数据
    * @returns {Promise} - 创建结果
    */
-  createKnowledgeItem: async (knowledgeData) => {
+  createDatabase: async (databaseData) => {
     checkAdminPermission()
-    return apiPost('/api/knowledge/', knowledgeData, {}, true)
+    return apiPost('/api/knowledge/', databaseData, {}, true)
   },
 
   /**
-   * 获取知识项详情
-   * @param {string} knowledgeId - 知识项ID
-   * @returns {Promise} - 知识项详情
+   * 获取知识库详情
+   * @param {string} dbId - 知识库ID
+   * @returns {Promise} - 知识库详情
    */
-  getKnowledgeInfo: async (knowledgeId) => {
+  getDatabaseInfo: async (dbId) => {
     checkAdminPermission()
-    return apiGet(`/api/knowledge/info?knowledge_id=${knowledgeId}`, {}, true)
+    return apiGet(`/api/knowledge/info?db_id=${dbId}`, {}, true)
   },
 
   /**
-   * 删除知识项
-   * @param {string} knowledgeId - 知识项ID
+   * 删除知识库
+   * @param {string} dbId - 知识库ID
    * @returns {Promise} - 删除结果
    */
-  deleteKnowledgeItem: async (knowledgeId) => {
+  deleteDatabase: async (dbId) => {
     checkAdminPermission()
-    return apiDelete(`/api/knowledge/?knowledge_id=${knowledgeId}`, {}, true)
+    return apiDelete(`/api/knowledge/?db_id=${dbId}`, {}, true)
   },
 
   /**
-   * 更新知识项信息
-   * @param {string} knowledgeId - 知识项ID
-   * @param {Object} data - 包含name、description和type的数据对象
+   * 上传文件到知识库
+   * @param {FormData} formData - 包含文件的FormData
+   * @param {string} dbId - 知识库ID
+   * @returns {Promise} - 上传结果
+   */
+  uploadFile: async (formData, dbId) => {
+    checkAdminPermission()
+    const userStore = useUserStore()
+    const authHeaders = userStore.getAuthHeaders()
+
+    return fetch(`/api/knowledge/upload?db_id=${dbId}`, {
+      method: 'POST',
+      headers: {
+        ...authHeaders
+      },
+      body: formData
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error(`上传失败: ${res.status} ${res.statusText}`)
+      }
+      return res.json()
+    })
+  },
+
+  /**
+   * 删除文件
+   * @param {string} dbId - 知识库ID
+   * @param {string} fileId - 文件ID
+   * @returns {Promise} - 删除结果
+   */
+  deleteFile: async (dbId, fileId) => {
+    checkAdminPermission()
+    return apiDelete('/api/knowledge/document', {
+      body: JSON.stringify({ db_id: dbId, file_id: fileId })
+    }, true)
+  },
+
+  /**
+   * 添加文件或URL到知识库
+   * @param {Object} data - 包含 db_id, items (文件路径或URL列表), params (包含 content_type 等参数)
+   * @returns {Promise} - 处理结果
+   */
+  addFiles: async (data) => { // data: { db_id, items, params }
+    checkAdminPermission()
+    return apiPost('/api/knowledge/add-files', data, {}, true)
+  },
+
+  /**
+   * 将分块添加到数据库
+   * @param {Object} data - 包含db_id和file_chunks的数据
+   * @returns {Promise} - 添加结果
+   */
+  addByChunks: async (data) => {
+    checkAdminPermission()
+    return apiPost('/api/knowledge/add-by-chunks', data, {}, true)
+  },
+
+  /**
+   * 查询测试
+   * @param {Object} data - 查询参数
+   * @returns {Promise} - 查询结果
+   */
+  queryTest: async (data) => {
+    checkAdminPermission()
+    return apiPost('/api/knowledge/query-test', data, {}, true)
+  },
+
+  /**
+   * 获取文档详情
+   * @param {string} dbId - 知识库ID
+   * @param {string} fileId - 文件ID
+   * @returns {Promise} - 文档详情
+   */
+  getDocumentDetail: async (dbId, fileId) => {
+    checkAdminPermission()
+    return apiGet(`/api/knowledge/document?db_id=${dbId}&file_id=${fileId}`, {}, true)
+  },
+
+  /**
+   * 更新知识库信息
+   * @param {string} dbId - 知识库ID
+   * @param {Object} data - 包含name和description的数据对象
    * @returns {Promise} - 更新结果
    */
-  updateKnowledgeInfo: async (knowledgeId, data) => {
+  updateDatabaseInfo: async (dbId, data) => {
     checkAdminPermission()
     return apiPost('/api/knowledge/update', {
-      knowledge_id: knowledgeId,
+      db_id: dbId,
       ...data
     }, {}, true)
   },
-
-  /**
-   * 添加内容到知识项
-   * @param {Object} contentData - 内容数据
-   * @returns {Promise} - 添加结果
-   */
-  addContent: async (contentData) => {
-    checkAdminPermission()
-    return apiPost('/api/knowledge/content', contentData, {}, true)
-  },
-
-  /**
-   * 更新内容
-   * @param {Object} contentData - 内容数据
-   * @returns {Promise} - 更新结果
-   */
-  updateContent: async (contentData) => {
-    checkAdminPermission()
-    return apiPut('/api/knowledge/content', contentData, {}, true)
-  },
-
-  /**
-   * 删除内容
-   * @param {string} knowledgeId - 知识项ID
-   * @param {string} contentId - 内容ID
-   * @returns {Promise} - 删除结果
-   */
-  deleteContent: async (knowledgeId, contentId) => {
-    checkAdminPermission()
-    return apiDelete(`/api/knowledge/content?knowledge_id=${knowledgeId}&content_id=${contentId}`, {}, true)
-  },
-
-  /**
-   * 获取内容详情
-   * @param {string} knowledgeId - 知识项ID
-   * @param {string} contentId - 内容ID
-   * @returns {Promise} - 内容详情
-   */
-  getContentDetail: async (knowledgeId, contentId) => {
-    checkAdminPermission()
-    return apiGet(`/api/knowledge/content?knowledge_id=${knowledgeId}&content_id=${contentId}`, {}, true)
-  },
 }
+
+
+
 
 // 图数据库管理API
 export const graphApi = {
