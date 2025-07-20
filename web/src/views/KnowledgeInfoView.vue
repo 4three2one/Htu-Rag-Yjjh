@@ -339,7 +339,7 @@ import { message, Modal } from 'ant-design-vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useConfigStore } from '@/stores/config'
 import { useUserStore } from '@/stores/user'
-import { knowledgeBaseApi } from '@/apis/admin_api'
+import { knowledgeManagementApi } from '@/apis/admin_api'
 import {
   ReadOutlined,
   LeftOutlined,
@@ -438,7 +438,7 @@ const onQuery = () => {
   meta.db_id = database.value.db_id
 
   try {
-    knowledgeBaseApi.queryTest({
+    knowledgeManagementApi.queryTest({
       query: queryText.value.trim(),
       meta: meta
     })
@@ -498,7 +498,7 @@ const deleteDatabse = () => {
     cancelText: '取消',
     onOk: () => {
       state.lock = true
-      knowledgeBaseApi.deleteDatabase(databaseId.value)
+      knowledgeManagementApi.deleteDatabase(databaseId.value)
         .then(data => {
           console.log(data)
           message.success(data.message || '删除成功')
@@ -535,7 +535,7 @@ const openFileDetail = (record) => {
   state.lock = true;
 
   try {
-    knowledgeBaseApi.getDocumentDetail(databaseId.value, record.file_id)
+    knowledgeManagementApi.getDocumentDetail(databaseId.value, record.file_id)
       .then(data => {
         console.log(data);
         if (data.status == "failed") {
@@ -598,7 +598,7 @@ const getDatabaseInfo = () => {
   state.lock = true
   state.databaseLoading = true
   return new Promise((resolve, reject) => {
-    knowledgeBaseApi.getDatabaseInfo(db_id)
+    knowledgeManagementApi.getDatabaseInfo(db_id)
       .then(data => {
         database.value = data
         resolve(data)
@@ -618,7 +618,7 @@ const getDatabaseInfo = () => {
 const deleteFile = (fileId) => {
   state.lock = true
   console.debug("deleteFile", databaseId.value, fileId)
-  return knowledgeBaseApi.deleteFile(databaseId.value, fileId)
+  return knowledgeManagementApi.deleteFile(databaseId.value, fileId)
     .then(data => {
       console.log(data)
       message.success(data.message || '删除成功')
@@ -723,7 +723,7 @@ const addFiles = (items, contentType = 'file') => {
     content_type: contentType
   };
 
-  knowledgeBaseApi.addFiles({
+  knowledgeManagementApi.addFiles({
     db_id: databaseId.value,
     items: items,
     params: params
@@ -869,7 +869,7 @@ const handleEditSubmit = () => {
 const updateDatabaseInfo = async () => {
   try {
     state.lock = true;
-    const response = await knowledgeBaseApi.updateDatabaseInfo(databaseId.value, {
+    const response = await knowledgeManagementApi.updateDatabaseInfo(databaseId.value, {
       name: editForm.name,
       description: editForm.description
     });
