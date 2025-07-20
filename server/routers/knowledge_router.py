@@ -47,9 +47,9 @@ async def delete_database(db_id, current_user: User = Depends(get_admin_user)):
 
 
 @data.get("/info")
-async def get_database_info(knowledge_id: str, current_user: User = Depends(get_admin_user)):
+async def get_database_info(db_id: str, current_user: User = Depends(get_admin_user)):
     # logger.debug(f"Get database {db_id} info")
-    database =get_dataset(knowledge_id)
+    database = get_dataset(db_id)
     if database is None:
         raise HTTPException(status_code=404, detail="Database not found")
     return transform_database_data(database)

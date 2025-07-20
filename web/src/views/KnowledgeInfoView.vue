@@ -364,7 +364,7 @@ import { Waypoints } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
-const databaseId = ref(route.params.database_id);
+const databaseId = ref(route.params.knowledge_id);
 const database = ref({});
 
 const fileList = ref([]);
