@@ -236,7 +236,7 @@
           </div>
         </a-tab-pane>
 
-        <a-tab-pane key="query-test" force-render>
+<!--        <a-tab-pane key="query-test" force-render>
           <template #tab><span><SearchOutlined />检索测试</span></template>
           <div class="query-test-container db-tab-container">
             <div class="query-result-container">
@@ -252,7 +252,7 @@
                 </a-button>
               </div>
 
-              <!-- 新增示例按钮 -->
+              &lt;!&ndash; 新增示例按钮 &ndash;&gt;
               <div class="query-examples-container">
                 <div class="examples-title">示例查询：</div>
                 <div class="query-examples">
@@ -268,7 +268,7 @@
             <div class="sider">
               <div class="sider-top">
                 <div class="query-params" v-if="state.curPage == 'query-test'">
-                  <!-- <h3 class="params-title">查询参数</h3> -->
+                  &lt;!&ndash; <h3 class="params-title">查询参数</h3> &ndash;&gt;
                   <div class="params-group">
                     <div class="params-item">
                       <p>检索模式：</p>
@@ -309,7 +309,7 @@
               </div>
             </div>
           </div>
-        </a-tab-pane>
+        </a-tab-pane>-->
 
 <!--        <a-tab-pane key="knowledge-graph" force-render>
           <template #tab><span><Waypoints size="14" class="mr-3 bn-1px" />知识图谱（开发中）</span></template>
