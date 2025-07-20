@@ -357,8 +357,8 @@ import {
   SettingOutlined,
 } from '@ant-design/icons-vue'
 import HeaderComponent from '@/components/HeaderComponent.vue';
-import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer.vue';
-import { Waypoints } from 'lucide-vue-next';
+// import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer.vue';
+// import { Waypoints } from 'lucide-vue-next';
 
 
 
@@ -982,10 +982,10 @@ const toggleAutoRefresh = (checked) => {
   gap: 12px;
 }
 
-.knowledge-graph-container {
+/* .knowledge-graph-container {
   height: calc(100vh - 150px);
   min-height: 600px;
-}
+} */
 
 .query-test-container {
   display: flex;
@@ -1539,7 +1539,7 @@ const toggleAutoRefresh = (checked) => {
   }
 }
 
-.knowledge-graph-container {
+/* .knowledge-graph-container {
   height: calc(100vh - 200px);
 
   :deep(.knowledge-graph-viewer) {
@@ -1549,7 +1549,7 @@ const toggleAutoRefresh = (checked) => {
       height: calc(100% - 80px);
     }
   }
-}
+} */
 
 </style>
 
