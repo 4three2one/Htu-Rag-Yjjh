@@ -311,7 +311,7 @@
           </div>
         </a-tab-pane>
 
-        <a-tab-pane key="knowledge-graph" force-render>
+<!--        <a-tab-pane key="knowledge-graph" force-render>
           <template #tab><span><Waypoints size="14" class="mr-3 bn-1px" />知识图谱（开发中）</span></template>
           <div class="knowledge-graph-container db-tab-container">
             <KnowledgeGraphViewer
@@ -319,7 +319,7 @@
               :hide-db-selector="true"
             />
           </div>
-        </a-tab-pane>
+        </a-tab-pane>-->
 
         <!-- <a-tab-pane key="3" tab="Tab 3">Content of Tab Pane 3</a-tab-pane> -->
         <template #rightExtra>
@@ -477,7 +477,7 @@ const afterOpenChange = (visible) => {
 }
 
 const backToDatabase = () => {
-  router.push('/database')
+  router.push('/knowledge')
 }
 
 const handleRefresh = () => {
@@ -502,7 +502,7 @@ const deleteDatabse = () => {
         .then(data => {
           console.log(data)
           message.success(data.message || '删除成功')
-          router.push('/database')
+          router.push('/knowledge')
         })
         .catch(error => {
           console.error(error)
