@@ -26,6 +26,11 @@
       </template>
     </a-modal>
     <div class="knowledge-items">
+      <!-- 调试信息 -->
+      <div v-if="knowledgeItems.length === 0" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #666;">
+        正在加载知识项... (数量: {{ knowledgeItems.length }})
+      </div>
+      
       <div class="new-knowledge knowledge-card" @click="state.openNewKnowledgeModel=true">
         <div class="top">
           <div class="icon"><BookPlus /></div>
@@ -104,8 +109,10 @@ const loadKnowledgeItems = () => {
   state.loading = true
   knowledgeManagementApi.getKnowledgeItems()
     .then(data => {
-      console.log(data)
+      console.log('API返回数据:', data)
+      console.log('knowledge_items:', data.knowledge_items)
       knowledgeItems.value = data.knowledge_items || []
+      console.log('设置后的knowledgeItems:', knowledgeItems.value)
       state.loading = false
     })
     .catch(error => {
