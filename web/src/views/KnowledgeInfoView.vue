@@ -83,9 +83,9 @@
             <div class="upload-mode-selector" @click="uploadMode = 'file'" :class="{ active: uploadMode === 'file' }">
               <FileOutlined /> 上传文件
             </div>
-            <div class="upload-mode-selector" @click="uploadMode = 'url'" :class="{ active: uploadMode === 'url' }">
+<!--            <div class="upload-mode-selector" @click="uploadMode = 'url'" :class="{ active: uploadMode === 'url' }">
               <LinkOutlined /> 输入网址
-            </div>
+            </div>-->
           </div>
           <div class="config-controls">
             <a-button type="dashed" @click="showChunkConfigModal">
