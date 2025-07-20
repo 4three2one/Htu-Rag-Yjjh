@@ -98,6 +98,7 @@ const mainList = [{
     path: '/graph',
     icon: Waypoints,
     activeIcon: Waypoints,
+    hidden: true, // 隐藏图谱页面
   }, {
     name: '知识库',
     path: '/database',
