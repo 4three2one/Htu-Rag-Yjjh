@@ -74,7 +74,7 @@ async def add_files(db_id: str = Body(...), items: list[str] = Body(...), params
     try:
         li_result=[]
         for item in items:
-            upload_response = upload_document_third(db_id, item)
+            upload_response = upload_document_third_with_parse(db_id, item)
             li_result.append(upload_response)
         return {"message": "", "items": li_result, "status": "success"}
         # # 使用统一的 add_content 方法
@@ -85,7 +85,7 @@ async def add_files(db_id: str = Body(...), items: list[str] = Body(...), params
         # processed_info = f"Processed {len(processed_items)} {item_type}, {processed_failed_count} {item_type} failed"
         # return {"message": processed_info, "items": processed_items, "status": "success"}
     except Exception as e:
-        # logger.error(f"Failed to process {content_type}s: {e}, {traceback.format_exc()}")
+        logger.error(f"Failed to process {content_type}s: {e}, {traceback.format_exc()}")
         return {"message": f"Failed to process {content_type}s: {e}", "status": "failed"}
 
 

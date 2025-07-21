@@ -146,7 +146,7 @@ def delete_dataset(dataset_id: str) -> bool:
         return False
 
 
-def upload_document_third(dataset_id: str, file_path: str, file_name: Optional[str] = None) -> Optional[Dict]:
+def upload_document_third_with_parse(dataset_id: str, file_path: str, file_name: Optional[str] = None) -> Optional[Dict]:
     """上传文档到数据集 - 使用官方API格式"""
     try:
         if not os.path.exists(file_path):
@@ -190,6 +190,11 @@ def upload_document_third(dataset_id: str, file_path: str, file_name: Optional[s
         document = documents[0]  # 获取第一个上传的文档
         
         logger.info(f"上传文档成功: {file_path} -> {document.id}")
+
+        dataset.async_parse_documents({document.id})
+
+        logger.info(f"Async bulk parsing initiated.")
+
         return {
             "id": document.id,
             "name": document.name,
@@ -362,7 +367,7 @@ async def async_delete_dataset(dataset_id: str) -> bool:
 
 async def async_upload_document(dataset_id: str, file_path: str, file_name: Optional[str] = None) -> Optional[Dict]:
     """异步上传文档"""
-    return upload_document_third(dataset_id, file_path, file_name)
+    return upload_document_third_with_parse(dataset_id, file_path, file_name)
 
 
 async def async_list_documents(dataset_id: str, page: int = 1, page_size: int = 30) -> List[Dict]:
