@@ -191,7 +191,7 @@ def upload_document_third_with_parse(dataset_id: str, file_path: str, file_name:
         
         logger.info(f"上传文档成功: {file_path} -> {document.id}")
 
-        dataset.async_parse_documents(document.id)
+        dataset.async_parse_documents([document.id])
 
         logger.info(f"Async bulk parsing initiated.")
 

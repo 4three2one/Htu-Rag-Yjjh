@@ -74,25 +74,25 @@
           :loading="state.chunkLoading"
           :disabled="(uploadMode === 'file' && fileList.length === 0) || (uploadMode === 'url' && !urlList.trim())"
         >
-          生成分块
+          上传并解析
         </a-button>
       </template>
       <div class="add-files-content">
-        <div class="upload-header">
+<!--        <div class="upload-header">
           <div class="source-selector">
             <div class="upload-mode-selector" @click="uploadMode = 'file'" :class="{ active: uploadMode === 'file' }">
               <FileOutlined /> 上传文件
             </div>
-<!--            <div class="upload-mode-selector" @click="uploadMode = 'url'" :class="{ active: uploadMode === 'url' }">
+            <div class="upload-mode-selector" @click="uploadMode = 'url'" :class="{ active: uploadMode === 'url' }">
               <LinkOutlined /> 输入网址
-            </div>-->
+            </div>
           </div>
           <div class="config-controls">
             <a-button type="dashed" @click="showChunkConfigModal">
               <SettingOutlined /> 分块参数 ({{ chunkParams.chunk_size }}/{{ chunkParams.chunk_overlap }})
             </a-button>
           </div>
-        </div>
+        </div>-->
 
         <!-- <div class="ocr-config">
           <a-form layout="horizontal">
@@ -117,9 +117,9 @@
             @drop="handleDrop"
           >
             <p class="ant-upload-text">点击或者把文件拖拽到这里上传</p>
-            <p class="ant-upload-hint">
+<!--            <p class="ant-upload-hint">
               目前仅支持上传文本文件，如 .pdf, .txt, .md。且同名文件无法重复添加
-            </p>
+            </p>-->
           </a-upload-dragger>
         </div>
 
