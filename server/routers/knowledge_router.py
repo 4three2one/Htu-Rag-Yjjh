@@ -72,15 +72,20 @@ async def add_files(db_id: str = Body(...), items: list[str] = Body(...), params
     content_type = params.get('content_type', 'file')
 
     try:
-        # 使用统一的 add_content 方法
-        processed_items = await knowledge_base.add_content(db_id, items, params=params)
-
-        item_type = "URLs" if content_type == 'url' else "files"
-        processed_failed_count = len([_p for _p in processed_items if _p['status'] == 'failed'])
-        processed_info = f"Processed {len(processed_items)} {item_type}, {processed_failed_count} {item_type} failed"
-        return {"message": processed_info, "items": processed_items, "status": "success"}
+        li_result=[]
+        for item in items:
+            upload_response = upload_document_third(db_id, item)
+            li_result.append(upload_response)
+        return {"message": "", "items": li_result, "status": "success"}
+        # # 使用统一的 add_content 方法
+        # processed_items = await knowledge_base.add_content(db_id, items, params=params)
+        #
+        # item_type = "URLs" if content_type == 'url' else "files"
+        # processed_failed_count = len([_p for _p in processed_items if _p['status'] == 'failed'])
+        # processed_info = f"Processed {len(processed_items)} {item_type}, {processed_failed_count} {item_type} failed"
+        # return {"message": processed_info, "items": processed_items, "status": "success"}
     except Exception as e:
-        logger.error(f"Failed to process {content_type}s: {e}, {traceback.format_exc()}")
+        # logger.error(f"Failed to process {content_type}s: {e}, {traceback.format_exc()}")
         return {"message": f"Failed to process {content_type}s: {e}", "status": "failed"}
 
 

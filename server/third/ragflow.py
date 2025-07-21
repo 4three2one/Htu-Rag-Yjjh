@@ -146,8 +146,8 @@ def delete_dataset(dataset_id: str) -> bool:
         return False
 
 
-def upload_document(dataset_id: str, file_path: str, file_name: Optional[str] = None) -> Optional[Dict]:
-    """上传文档到数据集"""
+def upload_document_third(dataset_id: str, file_path: str, file_name: Optional[str] = None) -> Optional[Dict]:
+    """上传文档到数据集 - 使用官方API格式"""
     try:
         if not os.path.exists(file_path):
             logger.error(f"文件不存在: {file_path}")
@@ -166,8 +166,28 @@ def upload_document(dataset_id: str, file_path: str, file_name: Optional[str] = 
         
         dataset = datasets[0]
         
-        # 上传文档
-        document = dataset.upload_document(file_path=file_path, file_name=file_name)
+        # 读取文件内容
+        with open(file_path, 'rb') as f:
+            file_content = f.read()
+        
+        # 如果没有指定文件名，使用路径中的文件名
+        if file_name is None:
+            file_name = os.path.basename(file_path)
+        
+        # 使用官方API格式上传文档
+        # dataset.upload_documents([{"display_name": "1.txt", "blob": "<BINARY_CONTENT_OF_THE_DOC>"}])
+        documents = dataset.upload_documents([
+            {
+                "display_name": file_name,
+                "blob": file_content
+            }
+        ])
+        
+        if not documents:
+            logger.error(f"上传文档失败: 没有返回文档对象")
+            return None
+        
+        document = documents[0]  # 获取第一个上传的文档
         
         logger.info(f"上传文档成功: {file_path} -> {document.id}")
         return {
@@ -342,7 +362,7 @@ async def async_delete_dataset(dataset_id: str) -> bool:
 
 async def async_upload_document(dataset_id: str, file_path: str, file_name: Optional[str] = None) -> Optional[Dict]:
     """异步上传文档"""
-    return upload_document(dataset_id, file_path, file_name)
+    return upload_document_third(dataset_id, file_path, file_name)
 
 
 async def async_list_documents(dataset_id: str, page: int = 1, page_size: int = 30) -> List[Dict]:
