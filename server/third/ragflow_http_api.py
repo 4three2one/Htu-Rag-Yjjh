@@ -1,5 +1,5 @@
 import httpx
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import os
 from src.utils import logger
 
@@ -61,3 +61,49 @@ async def list_documents_http(
             }
         logger.info(f"获取文档列表成功，共 {len(db_files)} 个文档")
         return db_files
+
+
+
+async def list_datasets_http(
+    page: int = 1,
+    page_size: int = 30,
+    orderby: Optional[str] = None,
+    desc: Optional[bool] = None,
+    name: Optional[str] = None,
+    dataset_id: Optional[str] = None
+) -> List[Any]:
+    """
+    通过 HTTP API 获取 ragflow 的数据集列表。
+    """
+    url = f"{base_url}/api/v1/datasets"
+    params = {
+        "page": page,
+        "page_size": page_size
+    }
+    logger.info(f" dataset: {dataset_id}")
+    if orderby:
+        params["orderby"] = orderby
+    if desc is not None:
+        params["desc"] = str(desc).lower()
+    if name:
+        params["name"] = name
+    if dataset_id:
+        params["id"] = dataset_id
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, headers=headers, params=params)
+        resp.raise_for_status()
+        json_resp=resp.json()
+        datasets = json_resp['data']
+        result=[]
+        for dataset in datasets:
+            result.append({
+                "id": dataset.get('id', ''),
+                "name": dataset.get('name', ''),
+                "description": dataset.get('description', ''),
+                "document_count": dataset.get('document_count', ''),
+                "embedding_model": dataset.get('embedding_model', ''),
+                "created_at": dataset.get('create_time', ''),
+                "updated_at": dataset.get('updated_at', '')
+            })
+        return result

@@ -9,7 +9,7 @@ def transform_database_li_data(original_data):
             "name": item["name"],
             "description": item["description"] or "",
             "type": "document",  # 默认类型
-            "content_count": 0,  # 暂时设为0，后续可以从文档数量获取
+            "content_count": item["document_count"] or "",
             "status": "active",
             "created_at": item["created_at"] or "",
             "updated_at": item.get("updated_at", ""),
@@ -17,7 +17,7 @@ def transform_database_li_data(original_data):
             "db_id": item["id"],
             "embed_info": {
                 "name": item["embedding_model"].split("@")[0] if "embedding_model" in item else "BAAI/bge-large-zh-v1.5",
-                "dimension": 1024,
+                # "dimension": 1024,
                 "base_url": "",
                 "api_key": ""
             },

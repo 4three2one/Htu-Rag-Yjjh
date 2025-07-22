@@ -8,7 +8,7 @@ from src import executor, config, knowledge_base, graph_base
 from server.utils.auth_middleware import get_admin_user
 from server.models.user_model import User
 from server.third.ragflow import *
-from server.third.ragflow_http_api import list_documents_http
+from server.third.ragflow_http_api import list_documents_http,list_datasets_http
 from server.third.data_transfer import *
 
 data = APIRouter(prefix="/knowledge")
@@ -17,7 +17,7 @@ data = APIRouter(prefix="/knowledge")
 @data.get("/")
 async def api_get_databases(current_user: User = Depends(get_admin_user)):
     try:
-        database = list_datasets()
+        database = await list_datasets_http()
     except Exception as e:
         logger.error(f"获取数据库列表失败 {e}, {traceback.format_exc()}")
         return {"message": f"获取数据库列表失败 {e}", "knowledge_items": []}
