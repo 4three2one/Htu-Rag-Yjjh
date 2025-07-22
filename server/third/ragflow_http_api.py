@@ -47,16 +47,16 @@ async def list_documents_http(
         documents = json_resp['data']['docs']
         db_files = {}
         for doc in documents:
-            db_files[doc.id] = {
-                "file_id": doc.id,
-                "filename": doc.name,
-                "path": getattr(doc, 'file_path', ''),
-                "type": getattr(doc, 'type', ''),
-                "run": getattr(doc, 'run', ''),
-                "status": getattr(doc, 'status', ''),
-                "chunk_count": getattr(doc, 'chunk_count', ''),
-                "chunk_method": getattr(doc, 'chunk_method', ''),
-                # "created_at": getattr(doc, 'created_at', ''),
+            db_files[doc['id']] = {
+                "file_id": doc['id'],
+                "filename": doc.get('name', ''),
+                "create_time": doc.get('create_time', ''),
+                "path": doc.get('file_path', ''),
+                "type": doc.get('type', ''),
+                "run": doc.get('run', ''),
+                "status": doc.get('status', ''),
+                "chunk_count": doc.get('chunk_count', ''),
+                "chunk_method": doc.get('chunk_method', ''),
                 "dataset_id": dataset_id
             }
         logger.info(f"获取文档列表成功，共 {len(db_files)} 个文档")
