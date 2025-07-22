@@ -190,20 +190,14 @@
                 <a-tooltip v-if="column.key === 'filename'" :title="record.file_id" placement="left">
                   <a-button class="main-btn" type="link" @click="openFileDetail(record)">{{ text }}</a-button>
                 </a-tooltip>
-                <span v-else-if="column.key === 'type'" :class="['span-type', text]">{{ text?.toUpperCase() }}</span>
-                <CheckCircleFilled v-else-if="column.key === 'status' && text === 'done'" style="color: #41A317;"/>
-                <CloseCircleFilled v-else-if="column.key === 'status' && text === 'failed'" style="color: #FF4D4F ;"/>
-                <HourglassFilled v-else-if="column.key === 'status' && text === 'processing'" style="color: #1677FF;"/>
-                <ClockCircleFilled v-else-if="column.key === 'status' && text === 'waiting'" style="color: #FFCD43;"/>
-
-                <a-tooltip v-else-if="column.key === 'created_at'" :title="record.status" placement="left">
-                  <span>{{ formatRelativeTime(Math.round(text*1000)) }}</span>
-                </a-tooltip>
-
+                <span v-else-if="column.key === 'chunk_count'">{{ record.chunk_count ?? '-' }}</span>
+                <span v-else-if="column.key === 'chunk_method'">{{ record.chunk_method ?? '-' }}</span>
+                <span v-else-if="column.key === 'status'">{{ record.status === '1' ? '是' : '否' }}</span>
+                <span v-else-if="column.key === 'run'">{{ runStatusMap[record.run] || record.run }}</span>
                 <div v-else-if="column.key === 'action'" style="display: flex; gap: 10px;">
                   <a-button class="del-btn" type="link"
                             @click="handleDeleteFile(record.file_id)"
-                            :disabled="state.lock || record.status === 'processing' || record.status === 'waiting'"
+                            :disabled="state.lock || record.run === 'RUNNING'"
                   >
                     删除
                   </a-button>
@@ -758,12 +752,20 @@ const addFiles = (items, contentType = 'file') => {
 
 
 
+const runStatusMap = {
+  UNSTART: '未解析',
+  RUNNING: '正在解析',
+  CANCEL: '取消解析',
+  DONE: '完成',
+  FAIL: '失败'
+};
+
 const columns = [
-  // { title: '文件ID', dataIndex: 'file_id', key: 'file_id' },
-  { title: '文件名', dataIndex: 'filename', key: 'filename', ellipsis: true },
-  { title: '上传时间', dataIndex: 'created_at', key: 'created_at', width: 150 },
-  { title: '状态', dataIndex: 'status', key: 'status', width: 80 },
-  { title: '类型', dataIndex: 'type', key: 'type', width: 80 },
+  { title: '文件名称', dataIndex: 'filename', key: 'filename', ellipsis: true },
+  { title: '分块数', dataIndex: 'chunk_count', key: 'chunk_count', width: 80 },
+  { title: '切片方法', dataIndex: 'chunk_method', key: 'chunk_method', width: 100 },
+  { title: '启用', dataIndex: 'status', key: 'status', width: 80 },
+  { title: '状态', dataIndex: 'run', key: 'run', width: 100 },
   { title: '操作', key: 'action', dataIndex: 'file_id', width: 150 }
 ];
 
