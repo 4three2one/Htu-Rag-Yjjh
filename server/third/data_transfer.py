@@ -9,7 +9,7 @@ def transform_database_li_data(original_data):
             "name": item["name"],
             "description": item["description"] or "",
             "type": "document",  # 默认类型
-            "content_count": item["document_count"] or "",
+            "content_count": item["document_count"] or 0,
             "status": "active",
             "created_at": item["created_at"] or "",
             "updated_at": item.get("updated_at", ""),
