@@ -10,6 +10,7 @@ from server.models.user_model import User
 from server.third.ragflow import *
 from server.third.ragflow_http_api import list_documents_http,list_datasets_http
 from server.third.data_transfer import *
+from server.db_manager import db_manager
 
 data = APIRouter(prefix="/knowledge")
 
@@ -43,7 +44,7 @@ async def api_create_database(
 @data.delete("/")
 async def api_delete_database(db_id, current_user: User = Depends(get_admin_user)):
     logger.debug(f"Delete database {db_id}")
-    knowledge_base.delete_database(db_id)
+    delete_dataset(db_id)
     return {"message": "删除成功"}
 
 
@@ -242,3 +243,40 @@ async def update_database_info(
     except Exception as e:
         logger.error(f"更新数据库失败 {e}, {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=f"更新数据库失败: {e}")
+
+
+@data.post("/hierarchy/add")
+async def add_knowledge_hierarchy(
+    db_id: str = Body(...),
+    parent_db_id: str = Body(None),
+    order: int = Body(0),
+    current_user: User = Depends(get_admin_user)
+):
+    try:
+        hierarchy = db_manager.add_knowledge_hierarchy(db_id, parent_db_id, order)
+        return {"message": "添加成功", "hierarchy": hierarchy.to_dict()}
+    except Exception as e:
+        logger.error(f"添加知识库层级失败 {e}, {traceback.format_exc()}")
+        raise HTTPException(status_code=400, detail=f"添加失败: {e}")
+
+@data.get("/hierarchy/info")
+async def get_knowledge_hierarchy(db_id: str, current_user: User = Depends(get_admin_user)):
+    hierarchy = db_manager.get_knowledge_hierarchy(db_id)
+    if not hierarchy:
+        return {"message": "未找到层级信息", "hierarchy": None}
+    return {"hierarchy": hierarchy.to_dict()}
+
+@data.get("/hierarchy/children")
+async def get_children_knowledge(parent_db_id: str, current_user: User = Depends(get_admin_user)):
+    children = db_manager.get_children_knowledge(parent_db_id)
+    return {"children": [c.to_dict() for c in children]}
+
+@data.get("/hierarchy/all")
+async def get_all_knowledge_hierarchy(current_user: User = Depends(get_admin_user)):
+    all_hierarchy = db_manager.get_all_knowledge_hierarchy()
+    return {"all_hierarchy": [h.to_dict() for h in all_hierarchy]}
+
+@data.delete("/hierarchy/delete")
+async def delete_knowledge_hierarchy(db_id: str = Body(...), current_user: User = Depends(get_admin_user)):
+    db_manager.delete_knowledge_hierarchy(db_id)
+    return {"message": "删除成功"}
