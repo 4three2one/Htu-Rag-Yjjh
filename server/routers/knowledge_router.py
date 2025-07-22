@@ -15,7 +15,7 @@ data = APIRouter(prefix="/knowledge")
 
 
 @data.get("/")
-async def get_databases(current_user: User = Depends(get_admin_user)):
+async def api_get_databases(current_user: User = Depends(get_admin_user)):
     try:
         database = list_datasets()
     except Exception as e:
@@ -25,7 +25,7 @@ async def get_databases(current_user: User = Depends(get_admin_user)):
 
 
 @data.post("/")
-async def create_database(
+async def api_create_database(
         knowledge_name: str = Body(...),
         description: str = Body(...),
         # embed_model_name: str = Body(...),
@@ -41,14 +41,14 @@ async def create_database(
 
 
 @data.delete("/")
-async def delete_database(db_id, current_user: User = Depends(get_admin_user)):
+async def api_delete_database(db_id, current_user: User = Depends(get_admin_user)):
     logger.debug(f"Delete database {db_id}")
     knowledge_base.delete_database(db_id)
     return {"message": "删除成功"}
 
 
 @data.get("/info")
-async def get_database_info(db_id: str, current_user: User = Depends(get_admin_user)):
+async def api_get_database_info(db_id: str, current_user: User = Depends(get_admin_user)):
     # logger.debug(f"Get database {db_id} info")
     database = get_dataset(db_id)
     if database is None:
@@ -59,7 +59,7 @@ async def get_database_info(db_id: str, current_user: User = Depends(get_admin_u
 
 
 @data.post("/add-files")
-async def add_files(db_id: str = Body(...), items: list[str] = Body(...), params: dict = Body(...),
+async def api_add_files(db_id: str = Body(...), items: list[str] = Body(...), params: dict = Body(...),
                     current_user: User = Depends(get_admin_user)):
     logger.debug(f"Add files/urls for db_id {db_id}: {items} {params=}")
 
@@ -85,11 +85,13 @@ async def add_files(db_id: str = Body(...), items: list[str] = Body(...), params
 
 
 @data.delete("/document")
-async def delete_document(db_id: str = Body(...), file_id: str = Body(...),
+async def api_delete_document(db_id: str = Body(...), file_id: str = Body(...),
                           current_user: User = Depends(get_admin_user)):
     logger.debug(f"DELETE document {file_id} info in {db_id}")
-    await knowledge_base.delete_file(db_id, file_id)
-    return {"message": "删除成功"}
+    delete_flag = await delete_document(db_id, file_id)
+    if delete_flag:
+        return {"message": "删除成功"}
+    return {"message": "删除失败"}
 
 
 # %% 待调整的API
