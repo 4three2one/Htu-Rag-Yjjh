@@ -194,6 +194,7 @@
                 <span v-else-if="column.key === 'chunk_method'">{{ record.chunk_method ?? '-' }}</span>
                 <span v-else-if="column.key === 'status'">{{ record.status === '1' ? '是' : '否' }}</span>
                 <span v-else-if="column.key === 'run'">{{ runStatusMap[record.run] || record.run }}</span>
+                <span v-else-if="column.key === 'create_time'">{{ formatCreateTime(record.create_time) }}</span>
                 <div v-else-if="column.key === 'action'" style="display: flex; gap: 10px;">
                   <a-button class="del-btn" type="link"
                             @click="handleDeleteFile(record.file_id)"
@@ -353,7 +354,7 @@ import {
 import HeaderComponent from '@/components/HeaderComponent.vue';
 // import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer.vue';
 // import { Waypoints } from 'lucide-vue-next';
-
+import dayjs from 'dayjs';
 
 
 const route = useRoute();
@@ -766,6 +767,7 @@ const columns = [
   { title: '切片方法', dataIndex: 'chunk_method', key: 'chunk_method', width: 100 },
   { title: '启用', dataIndex: 'status', key: 'status', width: 80 },
   { title: '状态', dataIndex: 'run', key: 'run', width: 100 },
+  { title: '创建时间', dataIndex: 'create_time', key: 'create_time', width: 150 },
   { title: '操作', key: 'action', dataIndex: 'file_id', width: 150 }
 ];
 
@@ -965,6 +967,16 @@ const toggleAutoRefresh = (checked) => {
   }
 };
 
+function formatCreateTime(val) {
+  if (!val) return '-';
+  // 支持时间戳（秒/毫秒）或 ISO 字符串
+  if (typeof val === 'number' || /^\d+$/.test(val)) {
+    // 判断是否为秒级时间戳
+    const ts = String(val).length === 10 ? val * 1000 : Number(val);
+    return dayjs(ts).format('YYYY-MM-DD HH:mm:ss');
+  }
+  return dayjs(val).format('YYYY-MM-DD HH:mm:ss');
+}
 
 </script>
 
