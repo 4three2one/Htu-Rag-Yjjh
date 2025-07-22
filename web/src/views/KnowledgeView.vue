@@ -49,15 +49,20 @@
           <div class="icon"><ReadFilled /></div>
           <div class="info">
             <h3>{{ knowledge.name }}</h3>
-            <p><span>{{ knowledge.content_count || 0 }} 内容</span></p>
+            <div class="meta-row-time">
+              <span class="meta-right" v-if="knowledge.created_at">
+                {{ formatCreateTime(knowledge.created_at) }}
+              </span>
+            </div>
           </div>
         </div>
-        <a-tooltip :title="knowledge.description || '暂无描述'">
-          <p class="description">{{ knowledge.description || '暂无描述' }}</p>
-        </a-tooltip>
-        <div class="tags">
-          <a-tag color="blue" v-if="knowledge.type">{{ knowledge.type }}</a-tag>
-          <a-tag color="green" v-if="knowledge.status">{{ knowledge.status }}</a-tag>
+        <div class="meta-bottom">
+          <span class="meta-left">
+            {{ (knowledge.content_count ?? 0) + ' 内容' }}
+          </span>
+          <span class="meta-embed">
+            <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
+          </span>
         </div>
       </div>
     </div>
@@ -166,6 +171,16 @@ const createKnowledge = () => {
 const navigateToKnowledge = (knowledgeId) => {
   router.push({ path: `/knowledge/${knowledgeId}` });
 };
+
+function formatCreateTime(val) {
+  if (!val) return '-';
+  // 支持时间戳（秒/毫秒）或 ISO 字符串
+  if (typeof val === 'number' || /^\d+$/.test(val)) {
+    const ts = String(val).length === 10 ? val * 1000 : Number(val);
+    return new Date(ts).toLocaleString();
+  }
+  return new Date(val).toLocaleString();
+}
 
 watch(() => route.path, (newPath, oldPath) => {
   if (newPath === '/knowledge') {
@@ -280,5 +295,48 @@ onMounted(() => {
   h3 {
     margin-top: 10px;
   }
+}
+.knowledge-card .info h3 {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 0;
+}
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #888;
+  font-size: 13px;
+  margin-top: 4px;
+}
+.meta-left {
+  font-weight: 500;
+}
+.meta-embed {
+  margin-left: 8px;
+}
+.meta-row-time {
+  margin-top: 2px;
+  color: #aaa;
+  font-size: 12px;
+  text-align: right;
+}
+.meta-right {
+  font-style: italic;
+}
+.meta-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #888;
+  font-size: 13px;
+  margin-top: 10px;
+  padding: 0 8px 4px 8px;
+}
+.meta-left {
+  font-weight: 500;
+}
+.meta-embed {
+  margin-left: 8px;
 }
 </style> 
