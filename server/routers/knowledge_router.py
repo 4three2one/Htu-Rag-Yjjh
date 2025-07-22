@@ -52,8 +52,9 @@ async def get_database_info(db_id: str, current_user: User = Depends(get_admin_u
     database = get_dataset(db_id)
     if database is None:
         raise HTTPException(status_code=404, detail="Database not found")
-    return transform_database_data(database)
+    db_files = list_documents(db_id)
 
+    return transform_database_data(database,db_files)
 
 
 @data.post("/query-test")
@@ -72,7 +73,7 @@ async def add_files(db_id: str = Body(...), items: list[str] = Body(...), params
     content_type = params.get('content_type', 'file')
 
     try:
-        li_result=[]
+        li_result = []
         for item in items:
             upload_response = upload_document_third_with_parse(db_id, item)
             li_result.append(upload_response)
@@ -117,7 +118,6 @@ async def create_document_by_file(db_id: str = Body(...), files: list[str] = Bod
 async def add_by_chunks(db_id: str = Body(...), file_chunks: dict = Body(...),
                         current_user: User = Depends(get_admin_user)):
     raise ValueError("This method is deprecated. Use /add-files instead.")
-
 
 
 @data.delete("/document")

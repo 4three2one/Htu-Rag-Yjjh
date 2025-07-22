@@ -223,18 +223,23 @@ def list_documents(dataset_id: str, page: int = 1, page_size: int = 30) -> List[
         dataset = datasets[0]
         documents = dataset.list_documents(page=page, page_size=page_size)
         
-        result = []
+        db_files = {}
         for doc in documents:
-            result.append({
-                "id": doc.id,
-                "name": doc.name,
-                "file_path": getattr(doc, 'file_path', ''),
-                "created_at": getattr(doc, 'created_at', ''),
+            db_files[doc.id] = {
+                "file_id": doc.id,
+                "filename": doc.name,
+                "path": getattr(doc, 'file_path', ''),
+                "type": getattr(doc, 'type', ''),
+                "run": getattr(doc, 'run', ''),
+                "status": getattr(doc, 'status', ''),
+                "chunk_count": getattr(doc, 'chunk_count', ''),
+                "chunk_method": getattr(doc, 'chunk_method', ''),
+                # "created_at": getattr(doc, 'created_at', ''),
                 "dataset_id": dataset_id
-            })
+            }
         
-        logger.info(f"获取文档列表成功，共 {len(result)} 个文档")
-        return result
+        logger.info(f"获取文档列表成功，共 {len(db_files)} 个文档")
+        return db_files
     except Exception as e:
         logger.error(f"获取文档列表失败: {e}, {traceback.format_exc()}")
         return []

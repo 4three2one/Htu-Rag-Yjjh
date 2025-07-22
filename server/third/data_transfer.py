@@ -30,7 +30,7 @@ def transform_database_li_data(original_data):
     return {"knowledge_items": knowledge_items}
 
 
-def transform_database_data(original_item):
+def transform_database_data(original_item,db_files):
     # 转换为前端期望的格式
     knowledge_item = {
         "id": original_item["id"],
@@ -51,7 +51,7 @@ def transform_database_data(original_item):
             "api_key": ""
         },
         "metadata": {},
-        "files": {},
+        "files": db_files,
         "row_count": 0
     }
 
