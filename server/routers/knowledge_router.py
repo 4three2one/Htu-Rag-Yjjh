@@ -55,14 +55,7 @@ async def get_database_info(db_id: str, current_user: User = Depends(get_admin_u
         raise HTTPException(status_code=404, detail="Database not found")
     db_files = await list_documents_http(db_id)
 
-    return transform_database_data(database,db_files)
-
-
-@data.post("/query-test")
-async def query_test(query: str = Body(...), meta: dict = Body(...), current_user: User = Depends(get_admin_user)):
-    logger.debug(f"Query test in {meta}: {query}")
-    result = await knowledge_base.aquery(query, **meta)
-    return result
+    return transform_database_data(database, db_files)
 
 
 @data.post("/add-files")
@@ -89,6 +82,22 @@ async def add_files(db_id: str = Body(...), items: list[str] = Body(...), params
     except Exception as e:
         logger.error(f"Failed to process {content_type}s: {e}, {traceback.format_exc()}")
         return {"message": f"Failed to process {content_type}s: {e}", "status": "failed"}
+
+
+@data.delete("/document")
+async def delete_document(db_id: str = Body(...), file_id: str = Body(...),
+                          current_user: User = Depends(get_admin_user)):
+    logger.debug(f"DELETE document {file_id} info in {db_id}")
+    await knowledge_base.delete_file(db_id, file_id)
+    return {"message": "删除成功"}
+
+
+# %% 待调整的API
+@data.post("/query-test")
+async def query_test(query: str = Body(...), meta: dict = Body(...), current_user: User = Depends(get_admin_user)):
+    logger.debug(f"Query test in {meta}: {query}")
+    result = await knowledge_base.aquery(query, **meta)
+    return result
 
 
 @data.post("/file-to-chunk")
@@ -121,12 +130,12 @@ async def add_by_chunks(db_id: str = Body(...), file_chunks: dict = Body(...),
     raise ValueError("This method is deprecated. Use /add-files instead.")
 
 
-@data.delete("/document")
-async def delete_document(db_id: str = Body(...), file_id: str = Body(...),
-                          current_user: User = Depends(get_admin_user)):
-    logger.debug(f"DELETE document {file_id} info in {db_id}")
-    await knowledge_base.delete_file(db_id, file_id)
-    return {"message": "删除成功"}
+# @data.delete("/document")
+# async def delete_document(db_id: str = Body(...), file_id: str = Body(...),
+#                           current_user: User = Depends(get_admin_user)):
+#     logger.debug(f"DELETE document {file_id} info in {db_id}")
+#     await knowledge_base.delete_file(db_id, file_id)
+#     return {"message": "删除成功"}
 
 
 @data.get("/document")
