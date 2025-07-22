@@ -88,7 +88,7 @@ async def api_add_files(db_id: str = Body(...), items: list[str] = Body(...), pa
 async def api_delete_document(db_id: str = Body(...), file_id: str = Body(...),
                           current_user: User = Depends(get_admin_user)):
     logger.debug(f"DELETE document {file_id} info in {db_id}")
-    delete_flag = await delete_document(db_id, file_id)
+    delete_flag = delete_document(db_id, file_id)
     if delete_flag:
         return {"message": "删除成功"}
     return {"message": "删除失败"}

@@ -260,7 +260,7 @@ def delete_document(dataset_id: str, document_id: str) -> bool:
             return False
         
         dataset = datasets[0]
-        dataset.delete_document(document_id=document_id)
+        dataset.delete_documents([document_id])
         
         logger.info(f"删除文档成功: {document_id}")
         return True
