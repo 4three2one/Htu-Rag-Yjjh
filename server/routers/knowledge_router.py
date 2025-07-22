@@ -8,6 +8,7 @@ from src import executor, config, knowledge_base, graph_base
 from server.utils.auth_middleware import get_admin_user
 from server.models.user_model import User
 from server.third.ragflow import *
+from server.third.ragflow_http_api import list_documents_http
 from server.third.data_transfer import *
 
 data = APIRouter(prefix="/knowledge")
@@ -52,7 +53,7 @@ async def get_database_info(db_id: str, current_user: User = Depends(get_admin_u
     database = get_dataset(db_id)
     if database is None:
         raise HTTPException(status_code=404, detail="Database not found")
-    db_files = list_documents(db_id)
+    db_files = await list_documents_http(db_id)
 
     return transform_database_data(database,db_files)
 

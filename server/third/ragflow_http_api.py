@@ -1,6 +1,7 @@
 import httpx
 from typing import Optional, Dict, Any
 import os
+from src.utils import logger
 
 # 配置 ragflow HTTP API 基础地址和 API KEY
 api_key = os.getenv("RAGFLOW_API_KEY", "ragflow-RmMDAyNzJlNWE0MjExZjA4MGMyN2VjZG")
@@ -9,7 +10,7 @@ headers = {
     "Authorization": f"Bearer {api_key}"
 }
 
-async def list_documents(
+async def list_documents_http(
     dataset_id: str,
     page: int = 1,
     page_size: int = 30,
@@ -27,6 +28,7 @@ async def list_documents(
         "page": page,
         "page_size": page_size
     }
+    logger.info(f" dataset: {dataset_id}")
     if orderby:
         params["orderby"] = orderby
     if desc is not None:
@@ -41,4 +43,21 @@ async def list_documents(
     async with httpx.AsyncClient() as client:
         resp = await client.get(url, headers=headers, params=params)
         resp.raise_for_status()
-        return resp.json() 
+        json_resp=resp.json()
+        documents = json_resp['data']['docs']
+        db_files = {}
+        for doc in documents:
+            db_files[doc.id] = {
+                "file_id": doc.id,
+                "filename": doc.name,
+                "path": getattr(doc, 'file_path', ''),
+                "type": getattr(doc, 'type', ''),
+                "run": getattr(doc, 'run', ''),
+                "status": getattr(doc, 'status', ''),
+                "chunk_count": getattr(doc, 'chunk_count', ''),
+                "chunk_method": getattr(doc, 'chunk_method', ''),
+                # "created_at": getattr(doc, 'created_at', ''),
+                "dataset_id": dataset_id
+            }
+        logger.info(f"获取文档列表成功，共 {len(db_files)} 个文档")
+        return db_files
