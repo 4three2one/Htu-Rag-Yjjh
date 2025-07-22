@@ -8,7 +8,7 @@ from src import config
 from server.models import Base
 from server.models.user_model import User
 from server.models.thread_model import Thread
-from server.models.kb_models import KnowledgeDatabase, KnowledgeFile, KnowledgeNode
+from server.models.kb_models import KnowledgeDatabase, KnowledgeFile, KnowledgeNode, KnowledgeHierarchy
 from src.utils import logger
 
 class DBManager:
@@ -64,6 +64,35 @@ class DBManager:
             return session.query(User).count() == 0
         finally:
             session.close()
+
+    def add_knowledge_hierarchy(self, db_id, parent_db_id=None, order=0):
+        """添加知识库层级关系"""
+        with self.get_session_context() as session:
+            hierarchy = KnowledgeHierarchy(db_id=db_id, parent_db_id=parent_db_id, order=order)
+            session.add(hierarchy)
+            session.commit()
+            return hierarchy
+
+    def get_knowledge_hierarchy(self, db_id):
+        """获取某知识库的层级信息"""
+        with self.get_session_context() as session:
+            return session.query(KnowledgeHierarchy).filter_by(db_id=db_id).first()
+
+    def get_children_knowledge(self, parent_db_id):
+        """获取某父级下的所有子知识库"""
+        with self.get_session_context() as session:
+            return session.query(KnowledgeHierarchy).filter_by(parent_db_id=parent_db_id).all()
+
+    def delete_knowledge_hierarchy(self, db_id):
+        """删除某知识库的层级关系"""
+        with self.get_session_context() as session:
+            session.query(KnowledgeHierarchy).filter_by(db_id=db_id).delete()
+            session.commit()
+
+    def get_all_knowledge_hierarchy(self):
+        """获取所有知识库层级关系"""
+        with self.get_session_context() as session:
+            return session.query(KnowledgeHierarchy).all()
 
 # 创建全局数据库管理器实例
 db_manager = DBManager()

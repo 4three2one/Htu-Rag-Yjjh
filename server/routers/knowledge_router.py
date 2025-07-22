@@ -29,12 +29,14 @@ async def api_get_databases(current_user: User = Depends(get_admin_user)):
 async def api_create_database(
         knowledge_name: str = Body(...),
         description: str = Body(...),
+        parent_db_id: str = Body(...),
         # embed_model_name: str = Body(...),
         current_user: User = Depends(get_admin_user)
 ):
     try:
         newly_dataset = create_dataset(knowledge_name, description)
-
+        # 插入层次关系
+        db_manager.add_knowledge_hierarchy(newly_dataset['id'], parent_db_id)
     except Exception as e:
         logger.error(f"创建数据库失败 {e}, {traceback.format_exc()}")
         return {"message": f"创建数据库失败 {e}", "status": "failed"}

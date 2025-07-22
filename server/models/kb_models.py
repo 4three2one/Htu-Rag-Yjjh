@@ -103,3 +103,22 @@ class KnowledgeNode(Base):
             "end_char_idx": self.end_char_idx,
             "metadata": self.meta_info or {}  # 确保映射正确
         }
+
+class KnowledgeHierarchy(Base):
+    """知识库层级结构表，仅维护db_id与parent_db_id的关系"""
+    __tablename__ = 'knowledge_hierarchy'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    db_id = Column(String, nullable=False, index=True, comment="知识库ID")
+    parent_db_id = Column(String, nullable=True, index=True, comment="父级知识库ID")
+    order = Column(Integer, nullable=True, default=0, comment="排序")
+    created_at = Column(DateTime, default=func.now(), comment="创建时间")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "db_id": self.db_id,
+            "parent_db_id": self.parent_db_id,
+            "order": self.order,
+            "created_at": self.created_at.isoformat() if self.created_at else None
+        }

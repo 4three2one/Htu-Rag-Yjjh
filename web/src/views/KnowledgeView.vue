@@ -13,6 +13,8 @@
       <a-input v-model:value="newKnowledge.name" placeholder="新建知识项名称" />
       <h3>知识类型</h3>
       <a-select v-model:value="newKnowledge.type" :options="knowledgeTypeOptions" style="width: 100%;" />
+      <h3>父级知识库</h3>
+      <a-select v-model:value="newKnowledge.parent_db_id" :options="parentOptions" allow-clear placeholder="可不选，表示根节点" style="width: 100%;" />
       <h3 style="margin-top: 20px;">知识描述</h3>
       <p style="color: var(--gray-700); font-size: 14px;">在智能体流程中，这里的描述会作为工具的描述。智能体会根据知识项的标题和描述来选择合适的工具。所以这里描述的越详细，智能体越容易选择到合适的工具。</p>
       <a-textarea
@@ -40,31 +42,36 @@
         </div>
         <p>创建和管理您的知识内容，包括文档、链接、笔记等，以增强 LLM 的上下文理解能力。</p>
       </div>
-      <div
-        v-for="knowledge in knowledgeItems"
-        :key="knowledge.id"
-        class="knowledge knowledge-card"
-        @click="navigateToKnowledge(knowledge.id)">
-        <div class="top">
-          <div class="icon"><ReadFilled /></div>
-          <div class="info">
-            <h3>{{ knowledge.name }}</h3>
-            <div class="meta-row-time">
-              <span class="meta-right" v-if="knowledge.created_at">
-                {{ formatCreateTime(knowledge.created_at) }}
-              </span>
+      <template v-if="hierarchyTree.length">
+        <KnowledgeTree :tree="hierarchyTree" @select="navigateToKnowledge" />
+      </template>
+      <template v-else>
+        <div
+          v-for="knowledge in knowledgeItems"
+          :key="knowledge.id"
+          class="knowledge knowledge-card"
+          @click="navigateToKnowledge(knowledge.id)">
+          <div class="top">
+            <div class="icon"><ReadFilled /></div>
+            <div class="info">
+              <h3>{{ knowledge.name }}</h3>
+              <div class="meta-row-time">
+                <span class="meta-right" v-if="knowledge.created_at">
+                  {{ formatCreateTime(knowledge.created_at) }}
+                </span>
+              </div>
             </div>
           </div>
+          <div class="meta-bottom">
+            <span class="meta-left">
+              {{ (knowledge.content_count ?? 0) + ' 文档' }}
+            </span>
+            <span class="meta-embed">
+              <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
+            </span>
+          </div>
         </div>
-        <div class="meta-bottom">
-          <span class="meta-left">
-            {{ (knowledge.content_count ?? 0) + ' 文档' }}
-          </span>
-          <span class="meta-embed">
-            <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
-          </span>
-        </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -77,6 +84,7 @@ import { message } from 'ant-design-vue'
 import { ReadFilled } from '@ant-design/icons-vue'
 import { BookPlus } from 'lucide-vue-next';
 import { knowledgeManagementApi } from '@/apis/admin_api';
+import { knowledgeHierarchyApi } from '@/apis/admin_api';
 import HeaderComponent from '@/components/HeaderComponent.vue';
 
 const route = useRoute()
@@ -89,6 +97,45 @@ const state = reactive({
   creating: false,
   openNewKnowledgeModel: false,
 })
+
+const hierarchyTree = ref([])
+const allHierarchy = ref([])
+const dbIdToName = ref({})
+
+// 构建树结构
+function buildHierarchyTree(hierarchyList, dbIdToNameMap) {
+  const idMap = {}
+  const tree = []
+  hierarchyList.forEach(item => {
+    idMap[item.db_id] = { ...item, children: [] }
+  })
+  hierarchyList.forEach(item => {
+    if (item.parent_db_id && idMap[item.parent_db_id]) {
+      idMap[item.parent_db_id].children.push(idMap[item.db_id])
+    } else {
+      tree.push(idMap[item.db_id])
+    }
+  })
+  // 补充名称
+  function fillName(node) {
+    node.name = dbIdToNameMap[node.db_id] || node.db_id
+    node.children.forEach(fillName)
+  }
+  tree.forEach(fillName)
+  return tree
+}
+
+const loadHierarchy = async () => {
+  // 获取所有层级
+  const res = await knowledgeHierarchyApi.getAllKnowledgeHierarchy()
+  allHierarchy.value = res.all_hierarchy || []
+  // 获取所有知识库名称
+  const dbListRes = await knowledgeManagementApi.getKnowledge()
+  const dbList = dbListRes.knowledge_items || []
+  dbIdToName.value = {}
+  dbList.forEach(db => { dbIdToName.value[db.db_id] = db.name })
+  hierarchyTree.value = buildHierarchyTree(allHierarchy.value, dbIdToName.value)
+}
 
 const knowledgeTypeOptions = computed(() => {
   return [
@@ -106,8 +153,10 @@ const emptyKnowledgeInfo = {
   type: 'document',
 }
 
+// 新建知识库表单增加parent_db_id
 const newKnowledge = reactive({
   ...emptyKnowledgeInfo,
+  parent_db_id: null,
 })
 
 const loadKnowledgeItems = () => {
@@ -137,35 +186,36 @@ const cancelCreateKnowledge = () => {
   state.openNewKnowledgeModel = false
 }
 
-const createKnowledge = () => {
+// createKnowledge时传递parent_db_id到层级表
+const createKnowledge = async () => {
   if (!newKnowledge.name?.trim()) {
     message.error('知识项名称不能为空')
     return
   }
-
   state.creating = true
-
   const requestData = {
     knowledge_name: newKnowledge.name.trim(),
     description: newKnowledge.description?.trim() || '',
     type: newKnowledge.type || 'document',
+    parent_db_id: newKnowledge.parent_db_id || null, // 新增父级知识库字段
   }
-
-  knowledgeManagementApi.createKnowledge(requestData)
-    .then(data => {
-      console.log('创建成功:', data)
-      loadKnowledgeItems()
-      resetNewKnowledge()
-      message.success('创建成功')
-    })
-    .catch(error => {
-      console.error('创建知识项失败:', error)
-      message.error(error.message || '创建失败')
-    })
-    .finally(() => {
-      state.creating = false
-      state.openNewKnowledgeModel = false
-    })
+  try {
+    const data = await knowledgeManagementApi.createKnowledge(requestData)
+    // 创建成功后，写入层级关系
+    if (data && data.db_id) {
+      await knowledgeHierarchyApi.addKnowledgeHierarchy({ db_id: data.db_id, parent_db_id: newKnowledge.parent_db_id })
+    }
+    loadKnowledgeItems()
+    loadHierarchy()
+    resetNewKnowledge()
+    message.success('创建成功')
+  } catch (error) {
+    console.error('创建知识项失败:', error)
+    message.error(error.message || '创建失败')
+  } finally {
+    state.creating = false
+    state.openNewKnowledgeModel = false
+  }
 }
 
 const navigateToKnowledge = (knowledgeId) => {
@@ -190,6 +240,16 @@ watch(() => route.path, (newPath, oldPath) => {
 
 onMounted(() => {
   loadKnowledgeItems()
+  loadHierarchy()
+})
+
+// 新建知识库时选择父级
+const parentOptions = computed(() => {
+  // 只允许选择当前 knowledgeItems 作为父级
+  return knowledgeItems.value.map(db => ({
+    label: db.name,
+    value: db.db_id
+  }))
 })
 
 </script>
@@ -340,3 +400,22 @@ onMounted(() => {
   margin-left: 8px;
 }
 </style> 
+
+<script>
+// 简单递归组件用于树状展示
+import { defineComponent, h } from 'vue'
+export const KnowledgeTree = defineComponent({
+  name: 'KnowledgeTree',
+  props: { tree: { type: Array, required: true } },
+  emits: ['select'],
+  setup(props, { emit }) {
+    const renderTree = (nodes, level = 0) => nodes.map(node =>
+      h('div', { style: { marginLeft: `${level * 24}px`, cursor: 'pointer', fontWeight: level === 0 ? 'bold' : 'normal' }, onClick: () => emit('select', node.db_id) }, [
+        node.name,
+        node.children && node.children.length ? renderTree(node.children, level + 1) : null
+      ])
+    )
+    return () => h('div', {}, renderTree(props.tree))
+  }
+})
+</script> 

@@ -340,7 +340,56 @@ export const knowledgeManagementApi = {
   },
 }
 
+export const knowledgeHierarchyApi = {
+  /**
+   * 添加知识库层级关系
+   * @param {Object} data - { db_id, parent_db_id, order }
+   * @returns {Promise}
+   */
+  addKnowledgeHierarchy: async (data) => {
+    checkAdminPermission()
+    return apiPost('/api/knowledge/hierarchy/add', data, {}, true)
+  },
 
+  /**
+   * 获取某知识库的层级信息
+   * @param {string} db_id
+   * @returns {Promise}
+   */
+  getKnowledgeHierarchy: async (db_id) => {
+    checkAdminPermission()
+    return apiGet('/api/knowledge/hierarchy/info', { db_id }, true)
+  },
+
+  /**
+   * 获取某父级下的所有子知识库
+   * @param {string} parent_db_id
+   * @returns {Promise}
+   */
+  getChildrenKnowledge: async (parent_db_id) => {
+    checkAdminPermission()
+    return apiGet('/api/knowledge/hierarchy/children', { parent_db_id }, true)
+  },
+
+  /**
+   * 获取所有知识库层级关系
+   * @returns {Promise}
+   */
+  getAllKnowledgeHierarchy: async () => {
+    checkAdminPermission()
+    return apiGet('/api/knowledge/hierarchy/all', {}, true)
+  },
+
+  /**
+   * 删除某知识库的层级关系
+   * @param {string} db_id
+   * @returns {Promise}
+   */
+  deleteKnowledgeHierarchy: async (db_id) => {
+    checkAdminPermission()
+    return apiDelete('/api/knowledge/hierarchy/delete', { db_id }, true)
+  },
+}
 
 
 // 图数据库管理API
