@@ -37,13 +37,13 @@ def get_default_info_config():
     """获取默认信息配置"""
     return {
         "organization": {
-            "name": "江南语析",
-            "short_name": "语析",
+            "name": "Htu",
+            # "short_name": "语析",
             "logo": "/favicon.svg",
-            "avatar": "/avatar.jpg"
+            "avatar": "/avatar.svg"
         },
         "branding": {
-            "title": "Yuxi-Know",
+            "title": "Htu-Rag",
             "subtitle": "大模型驱动的知识库管理工具",
             "description": "结合知识库与知识图谱，提供更准确、更全面的回答"
         },
@@ -53,7 +53,7 @@ def get_default_info_config():
             "🤖 多模型支持"
         ],
         "footer": {
-            "copyright": "© 江南语析 2025 [WIP] v0.12.138"
+            "copyright": "© Htu"
         }
     }
 
