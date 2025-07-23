@@ -9,6 +9,7 @@ from fastapi.responses import StreamingResponse
 from langchain_core.messages import AIMessageChunk, HumanMessage
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+import aiosqlite
 
 from src import executor, config
 from src.core import HistoryManager
@@ -20,6 +21,32 @@ from server.routers.auth_router import get_admin_user
 from server.utils.auth_middleware import get_required_user, get_db
 from server.models.user_model import User
 from server.models.thread_model import Thread
+
+RAGFLOW_HISTORY_DB = os.path.join("saves", "agents", "ragflow", "aio_history.db")
+os.makedirs(os.path.dirname(RAGFLOW_HISTORY_DB), exist_ok=True)
+
+async def save_ragflow_history(thread_id, user_id, agent_id, user_msg, ai_msg):
+    async with aiosqlite.connect(RAGFLOW_HISTORY_DB) as db:
+        await db.execute(
+            """CREATE TABLE IF NOT EXISTS history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                thread_id TEXT,
+                user_id TEXT,
+                agent_id TEXT,
+                role TEXT,
+                content TEXT,
+                create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )"""
+        )
+        await db.execute(
+            "INSERT INTO history (thread_id, user_id, agent_id, role, content) VALUES (?, ?, ?, ?, ?)",
+            (thread_id, user_id, agent_id, "user", user_msg)
+        )
+        await db.execute(
+            "INSERT INTO history (thread_id, user_id, agent_id, role, content) VALUES (?, ?, ?, ?, ?)",
+            (thread_id, user_id, agent_id, "assistant", ai_msg)
+        )
+        await db.commit()
 
 chat = APIRouter(prefix="/chat")
 
@@ -119,15 +146,32 @@ async def chat_agent(agent_name: str,
     if agent_name == "ragflow":
         async def stream_ragflow():
             try:
+                thread_id = config.get("thread_id")
+                if not thread_id:
+                    thread_id = str(uuid.uuid4())
+                    config["thread_id"] = thread_id
+
                 # 默认模型可根据需要调整
                 # model_name = config.get("model", "openai/gpt-3.5-turbo")
                 model_name = "deepseek/deepseek-chat"
                 chat_model = load_chat_model(model_name)
                 messages = [HumanMessage(content=query)]
                 yield make_chunk(status="init", meta=meta, msg=messages[0].model_dump())
+
+                ai_content = ""
                 async for chunk in chat_model.astream(messages):
                     if hasattr(chunk, "content"):
+                        ai_content += chunk.content
                         yield make_chunk(content=chunk.content, msg=chunk.model_dump(), status="loading")
+
+                await save_ragflow_history(
+                    thread_id=thread_id,
+                    user_id=current_user.id,
+                    agent_id=agent_name,
+                    user_msg=query,
+                    ai_msg=ai_content
+                )
+
                 yield make_chunk(status="finished", meta=meta)
             except Exception as e:
                 import traceback
@@ -237,6 +281,23 @@ async def get_agent_history(
     current_user: User = Depends(get_required_user)
 ):
     """获取智能体历史消息（需要登录）"""
+    if agent_name == "ragflow":
+        async with aiosqlite.connect(RAGFLOW_HISTORY_DB) as db:
+            cursor = await db.execute(
+                "SELECT role, content, create_at FROM history WHERE thread_id=? AND user_id=? AND agent_id=? ORDER BY id ASC",
+                (thread_id, current_user.id, agent_name)
+            )
+            rows = await cursor.fetchall()
+            history = [
+                {
+                    "role": row[0],
+                    "type": "human" if row[0] == "user" else "ai",
+                    "content": row[1],
+                    "create_at": row[2]
+                }
+                for row in rows
+            ]
+        return {"history": history}
     try:
         # 获取Agent实例和配置类
         agent = agent_manager.get_agent(agent_name)
