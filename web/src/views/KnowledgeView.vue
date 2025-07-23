@@ -38,7 +38,7 @@
             正在加载知识项... (数量: {{ knowledgeItems.length }})
           </div>
           
-          <div class="new-knowledge knowledge-card" @click="state.openNewKnowledgeModel=true">
+<!--          <div class="new-knowledge knowledge-card" @click="state.openNewKnowledgeModel=true">
             <div class="top">
               <div class="icon"><BookPlus /></div>
               <div class="info">
@@ -46,7 +46,7 @@
               </div>
             </div>
             <p>创建和管理您的知识内容，包括文档、链接、笔记等，以增强 LLM 的上下文理解能力。</p>
-          </div>
+          </div>-->
           <div
             v-for="knowledge in knowledgeItems"
             :key="knowledge.id"
