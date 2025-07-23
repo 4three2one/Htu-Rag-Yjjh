@@ -80,8 +80,11 @@
         <div class="hierarchy-preview">
           <h3 class="hierarchy-title">层级结构预览</h3>
           <div class="hierarchy-content">
+            <div v-if="state.loading" class="hierarchy-loading">
+              <p>加载层级结构中...</p>
+            </div>
             <a-tree
-              v-if="hierarchyTreeData.length > 0"
+              v-else-if="hierarchyTreeData.length > 0"
               :tree-data="hierarchyTreeData"
               :default-expand-all="true"
               :show-line="true"
@@ -147,25 +150,25 @@ const newKnowledge = reactive({
 // 层级树数据
 const hierarchyTreeData = ref([])
 
-const loadKnowledgeItems = () => {
+const loadKnowledgeItems = async () => {
   state.loading = true
-  knowledgeManagementApi.getKnowledge()
-    .then(data => {
-      console.log('API返回数据:', data)
-      console.log('knowledge_items:', data.knowledge_items)
-      knowledgeItems.value = data.knowledge_items || []
-      console.log('设置后的knowledgeItems:', knowledgeItems.value)
-      state.loading = false
-      // 加载层级结构
-      loadHierarchyStructure()
-    })
-    .catch(error => {
-      console.error('加载知识项列表失败:', error);
-      if (error.message.includes('权限')) {
-        message.error('需要管理员权限访问知识管理')
-      }
-      state.loading = false
-    })
+  try {
+    const data = await knowledgeManagementApi.getKnowledge()
+    console.log('API返回数据:', data)
+    console.log('knowledge_items:', data.knowledge_items)
+    knowledgeItems.value = data.knowledge_items || []
+    console.log('设置后的knowledgeItems:', knowledgeItems.value)
+    
+    // 加载层级结构
+    await loadHierarchyStructure()
+  } catch (error) {
+    console.error('加载知识项列表失败:', error);
+    if (error.message.includes('权限')) {
+      message.error('需要管理员权限访问知识管理')
+    }
+  } finally {
+    state.loading = false
+  }
 }
 
 // 加载层级结构
@@ -173,47 +176,95 @@ const loadHierarchyStructure = async () => {
   try {
     const hierarchyData = await knowledgeHierarchyApi.getAllKnowledgeHierarchy()
     console.log('层级数据:', hierarchyData)
+    console.log('知识项数据:', knowledgeItems.value)
     
     if (hierarchyData.all_hierarchy && hierarchyData.all_hierarchy.length > 0) {
       // 构建树形结构
       const treeData = buildHierarchyTree(hierarchyData.all_hierarchy, knowledgeItems.value)
+      console.log('构建的树形数据:', treeData)
       hierarchyTreeData.value = treeData
     } else {
-      hierarchyTreeData.value = []
+      // 如果没有层级数据，将所有知识项作为根节点显示
+      const flatTreeData = knowledgeItems.value.map(item => ({
+        key: item.db_id,
+        title: item.name,
+        children: []
+      }))
+      console.log('平铺的树形数据:', flatTreeData)
+      hierarchyTreeData.value = flatTreeData
     }
   } catch (error) {
     console.error('加载层级结构失败:', error)
-    hierarchyTreeData.value = []
+    // 出错时也显示所有知识项作为根节点
+    const fallbackTreeData = knowledgeItems.value.map(item => ({
+      key: item.db_id,
+      title: item.name,
+      children: []
+    }))
+    console.log('回退的树形数据:', fallbackTreeData)
+    hierarchyTreeData.value = fallbackTreeData
   }
 }
 
 // 构建层级树形结构
 const buildHierarchyTree = (hierarchyList, knowledgeItems) => {
+  console.log('开始构建层级树，层级列表:', hierarchyList)
+  console.log('知识项列表:', knowledgeItems)
+  
   // 创建知识项映射
   const knowledgeMap = new Map()
   knowledgeItems.forEach(item => {
     knowledgeMap.set(item.db_id, item)
   })
 
-  // 创建层级映射
-  const hierarchyMap = new Map()
-  hierarchyList.forEach(h => {
-    hierarchyMap.set(h.db_id, h)
+  // 创建层级关系映射
+  const parentChildMap = new Map()
+  const childParentMap = new Map()
+  
+  hierarchyList.forEach(hierarchy => {
+    if (hierarchy.parent_db_id) {
+      // 建立父子关系映射
+      if (!parentChildMap.has(hierarchy.parent_db_id)) {
+        parentChildMap.set(hierarchy.parent_db_id, [])
+      }
+      parentChildMap.get(hierarchy.parent_db_id).push(hierarchy.db_id)
+      
+      // 建立子父关系映射
+      childParentMap.set(hierarchy.db_id, hierarchy.parent_db_id)
+    }
   })
+
+  console.log('父子关系映射:', Object.fromEntries(parentChildMap))
+  console.log('子父关系映射:', Object.fromEntries(childParentMap))
 
   // 构建树形结构
   const treeData = []
   const processed = new Set()
 
-  // 先处理根节点（没有父级的节点）
+  // 1. 先处理根节点（没有父级的节点）
+  knowledgeItems.forEach(item => {
+    if (!childParentMap.has(item.db_id) && !processed.has(item.db_id)) {
+      console.log('处理根节点:', item.name, item.db_id)
+      const node = {
+        key: item.db_id,
+        title: item.name,
+        children: buildChildrenNodes(item.db_id, parentChildMap, knowledgeMap, processed)
+      }
+      treeData.push(node)
+      processed.add(item.db_id)
+    }
+  })
+
+  // 2. 处理有层级关系但父级不存在的节点（作为根节点显示）
   hierarchyList.forEach(hierarchy => {
-    if (!hierarchy.parent_db_id && !processed.has(hierarchy.db_id)) {
+    if (hierarchy.parent_db_id && !knowledgeMap.has(hierarchy.parent_db_id) && !processed.has(hierarchy.db_id)) {
       const knowledge = knowledgeMap.get(hierarchy.db_id)
       if (knowledge) {
+        console.log('处理孤立节点:', knowledge.name, hierarchy.db_id)
         const node = {
           key: hierarchy.db_id,
           title: knowledge.name,
-          children: getChildren(hierarchy.db_id, hierarchyList, knowledgeMap, processed)
+          children: buildChildrenNodes(hierarchy.db_id, parentChildMap, knowledgeMap, processed)
         }
         treeData.push(node)
         processed.add(hierarchy.db_id)
@@ -221,41 +272,38 @@ const buildHierarchyTree = (hierarchyList, knowledgeItems) => {
     }
   })
 
-  // 处理没有层级关系的知识项（作为根节点）
-  knowledgeItems.forEach(item => {
-    if (!processed.has(item.db_id)) {
-      const node = {
-        key: item.db_id,
-        title: item.name,
-        children: []
-      }
-      treeData.push(node)
-      processed.add(item.db_id)
-    }
-  })
-
+  console.log('最终树形数据:', treeData)
   return treeData
 }
 
-// 递归获取子节点
-const getChildren = (parentId, hierarchyList, knowledgeMap, processed) => {
+// 递归构建子节点
+const buildChildrenNodes = (parentId, parentChildMap, knowledgeMap, processed) => {
   const children = []
+  const childIds = parentChildMap.get(parentId) || []
   
-  hierarchyList.forEach(hierarchy => {
-    if (hierarchy.parent_db_id === parentId && !processed.has(hierarchy.db_id)) {
-      const knowledge = knowledgeMap.get(hierarchy.db_id)
+  console.log(`构建 ${parentId} 的子节点:`, childIds)
+  
+  childIds.forEach(childId => {
+    if (!processed.has(childId)) {
+      const knowledge = knowledgeMap.get(childId)
       if (knowledge) {
+        console.log(`添加子节点: ${knowledge.name} (${childId}) 到父节点 ${parentId}`)
         const node = {
-          key: hierarchy.db_id,
+          key: childId,
           title: knowledge.name,
-          children: getChildren(hierarchy.db_id, hierarchyList, knowledgeMap, processed)
+          children: buildChildrenNodes(childId, parentChildMap, knowledgeMap, processed)
         }
         children.push(node)
-        processed.add(hierarchy.db_id)
+        processed.add(childId)
+      } else {
+        console.warn(`未找到知识项: ${childId}`)
       }
+    } else {
+      console.log(`跳过已处理的子节点: ${childId}`)
     }
   })
 
+  console.log(`父节点 ${parentId} 的子节点数量:`, children.length)
   return children
 }
 
@@ -403,6 +451,17 @@ const parentOptions = computed(() => {
   .hierarchy-tip {
     font-size: 12px;
     color: #ccc;
+  }
+}
+
+.hierarchy-loading {
+  text-align: center;
+  color: #666;
+  padding: 40px 20px;
+  
+  p {
+    margin: 0;
+    font-size: 14px;
   }
 }
 
