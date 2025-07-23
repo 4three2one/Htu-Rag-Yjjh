@@ -256,7 +256,7 @@ async def add_knowledge_hierarchy(
 ):
     try:
         hierarchy = db_manager.add_knowledge_hierarchy(db_id, parent_db_id, order)
-        return {"message": "添加成功", "hierarchy": hierarchy.to_dict()}
+        return {"message": "添加成功", "hierarchy": hierarchy}  # 直接返回，因为已经是字典了
     except Exception as e:
         logger.error(f"添加知识库层级失败 {e}, {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=f"添加失败: {e}")
@@ -266,17 +266,17 @@ async def get_knowledge_hierarchy(db_id: str, current_user: User = Depends(get_a
     hierarchy = db_manager.get_knowledge_hierarchy(db_id)
     if not hierarchy:
         return {"message": "未找到层级信息", "hierarchy": None}
-    return {"hierarchy": hierarchy.to_dict()}
+    return {"hierarchy": hierarchy}  # 直接返回，因为已经是字典了
 
 @data.get("/hierarchy/children")
 async def get_children_knowledge(parent_db_id: str, current_user: User = Depends(get_admin_user)):
     children = db_manager.get_children_knowledge(parent_db_id)
-    return {"children": [c.to_dict() for c in children]}
+    return {"children": children}  # 直接返回，因为已经是字典列表了
 
 @data.get("/hierarchy/all")
 async def get_all_knowledge_hierarchy(current_user: User = Depends(get_admin_user)):
     all_hierarchy = db_manager.get_all_knowledge_hierarchy()
-    return {"all_hierarchy": [h.to_dict() for h in all_hierarchy]}
+    return {"all_hierarchy": all_hierarchy}  # 直接返回，因为已经是字典列表了
 
 @data.delete("/hierarchy/delete")
 async def delete_knowledge_hierarchy(db_id: str = Body(...), current_user: User = Depends(get_admin_user)):
