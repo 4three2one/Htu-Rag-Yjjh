@@ -29,6 +29,9 @@
         <a-form-item label="知识库名称" name="name" required>
           <a-input v-model:value="editForm.name" placeholder="请输入知识库名称" />
         </a-form-item>
+        <a-form-item label="父级知识库" name="parent_db_id">
+          <a-select v-model:value="editForm.parent_db_id" :options="parentOptions" allow-clear placeholder="可不选，表示根节点" />
+        </a-form-item>
         <a-form-item label="知识库描述" name="description">
           <a-textarea v-model:value="editForm.description" placeholder="请输入知识库描述" :rows="4" />
         </a-form-item>
@@ -836,12 +839,38 @@ const editModalVisible = ref(false);
 const editFormRef = ref(null);
 const editForm = reactive({
   name: '',
-  description: ''
+  description: '',
+  parent_db_id: null
 });
 
 const rules = {
   name: [{ required: true, message: '请输入知识库名称' }]
 };
+
+const allKnowledgeList = ref([])
+const parentOptions = computed(() => {
+  // 排除自身及其所有子孙节点
+  if (!database.value.db_id) return []
+  const excludeIds = new Set([database.value.db_id])
+  // 递归收集所有子孙节点id
+  const collectChildren = (id) => {
+    allKnowledgeList.value.forEach(item => {
+      if (item.parent_db_id === id && !excludeIds.has(item.db_id)) {
+        excludeIds.add(item.db_id)
+        collectChildren(item.db_id)
+      }
+    })
+  }
+  collectChildren(database.value.db_id)
+  return allKnowledgeList.value
+    .filter(item => !excludeIds.has(item.db_id))
+    .map(item => ({ label: item.name, value: item.db_id }))
+})
+
+const loadAllKnowledgeList = async () => {
+  const res = await knowledgeManagementApi.getKnowledge()
+  allKnowledgeList.value = res.knowledge_items || []
+}
 
 // 分块参数配置弹窗
 const chunkConfigModalVisible = ref(false);
@@ -854,9 +883,11 @@ const tempChunkParams = ref({
 const addFilesModalVisible = ref(false);
 
 // 显示编辑对话框
-const showEditModal = () => {
+const showEditModal = async () => {
   editForm.name = database.value.name || '';
   editForm.description = database.value.description || '';
+  editForm.parent_db_id = database.value.parent_db_id || null;
+  await loadAllKnowledgeList()
   editModalVisible.value = true;
 };
 
@@ -875,7 +906,8 @@ const updateDatabaseInfo = async () => {
     state.lock = true;
     const response = await knowledgeManagementApi.updateDatabaseInfo(databaseId.value, {
       name: editForm.name,
-      description: editForm.description
+      description: editForm.description,
+      parent_db_id: editForm.parent_db_id || null
     });
 
     message.success('知识库信息更新成功');
