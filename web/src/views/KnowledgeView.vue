@@ -42,36 +42,31 @@
         </div>
         <p>创建和管理您的知识内容，包括文档、链接、笔记等，以增强 LLM 的上下文理解能力。</p>
       </div>
-      <template v-if="hierarchyTree.length">
-        <KnowledgeTree :tree="hierarchyTree" @select="navigateToKnowledge" />
-      </template>
-      <template v-else>
-        <div
-          v-for="knowledge in knowledgeItems"
-          :key="knowledge.id"
-          class="knowledge knowledge-card"
-          @click="navigateToKnowledge(knowledge.id)">
-          <div class="top">
-            <div class="icon"><ReadFilled /></div>
-            <div class="info">
-              <h3>{{ knowledge.name }}</h3>
-              <div class="meta-row-time">
-                <span class="meta-right" v-if="knowledge.created_at">
-                  {{ formatCreateTime(knowledge.created_at) }}
-                </span>
-              </div>
+      <div
+        v-for="knowledge in knowledgeItems"
+        :key="knowledge.id"
+        class="knowledge knowledge-card"
+        @click="navigateToKnowledge(knowledge.id)">
+        <div class="top">
+          <div class="icon"><ReadFilled /></div>
+          <div class="info">
+            <h3>{{ knowledge.name }}</h3>
+            <div class="meta-row-time">
+              <span class="meta-right" v-if="knowledge.created_at">
+                {{ formatCreateTime(knowledge.created_at) }}
+              </span>
             </div>
           </div>
-          <div class="meta-bottom">
-            <span class="meta-left">
-              {{ (knowledge.content_count ?? 0) + ' 文档' }}
-            </span>
-            <span class="meta-embed">
-              <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
-            </span>
-          </div>
         </div>
-      </template>
+        <div class="meta-bottom">
+          <span class="meta-left">
+            {{ (knowledge.content_count ?? 0) + ' 文档' }}
+          </span>
+          <span class="meta-embed">
+            <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -98,54 +93,12 @@ const state = reactive({
   openNewKnowledgeModel: false,
 })
 
-const hierarchyTree = ref([])
-const allHierarchy = ref([])
-const dbIdToName = ref({})
-
-// 构建树结构
-function buildHierarchyTree(hierarchyList, dbIdToNameMap) {
-  const idMap = {}
-  const tree = []
-  hierarchyList.forEach(item => {
-    idMap[item.db_id] = { ...item, children: [] }
-  })
-  hierarchyList.forEach(item => {
-    if (item.parent_db_id && idMap[item.parent_db_id]) {
-      idMap[item.parent_db_id].children.push(idMap[item.db_id])
-    } else {
-      tree.push(idMap[item.db_id])
-    }
-  })
-  // 补充名称
-  function fillName(node) {
-    node.name = dbIdToNameMap[node.db_id] || node.db_id
-    node.children.forEach(fillName)
-  }
-  tree.forEach(fillName)
-  return tree
-}
-
-const loadHierarchy = async () => {
-  // 获取所有层级
-  const res = await knowledgeHierarchyApi.getAllKnowledgeHierarchy()
-  allHierarchy.value = res.all_hierarchy || []
-  // 获取所有知识库名称
-  const dbListRes = await knowledgeManagementApi.getKnowledge()
-  const dbList = dbListRes.knowledge_items || []
-  dbIdToName.value = {}
-  dbList.forEach(db => { dbIdToName.value[db.db_id] = db.name })
-  hierarchyTree.value = buildHierarchyTree(allHierarchy.value, dbIdToName.value)
-}
-
-const knowledgeTypeOptions = computed(() => {
-  return [
-    { label: '文档知识', value: 'document' },
-    // { label: '链接知识', value: 'link' },
-    // { label: '笔记知识', value: 'note' },
-    // { label: 'FAQ知识', value: 'faq' },
-    // { label: '其他', value: 'other' },
-  ]
-})
+// 知识类型选项
+const knowledgeTypeOptions = [
+  { label: '文档', value: 'document' },
+  { label: '链接', value: 'url' },
+  { label: '笔记', value: 'note' },
+]
 
 const emptyKnowledgeInfo = {
   name: '',
@@ -206,7 +159,6 @@ const createKnowledge = async () => {
       await knowledgeHierarchyApi.addKnowledgeHierarchy({ db_id: data.db_id, parent_db_id: newKnowledge.parent_db_id })
     }
     loadKnowledgeItems()
-    loadHierarchy()
     resetNewKnowledge()
     message.success('创建成功')
   } catch (error) {
@@ -240,7 +192,6 @@ watch(() => route.path, (newPath, oldPath) => {
 
 onMounted(() => {
   loadKnowledgeItems()
-  loadHierarchy()
 })
 
 // 新建知识库时选择父级
@@ -400,22 +351,3 @@ const parentOptions = computed(() => {
   margin-left: 8px;
 }
 </style> 
-
-<script>
-// 简单递归组件用于树状展示
-import { defineComponent, h } from 'vue'
-export const KnowledgeTree = defineComponent({
-  name: 'KnowledgeTree',
-  props: { tree: { type: Array, required: true } },
-  emits: ['select'],
-  setup(props, { emit }) {
-    const renderTree = (nodes, level = 0) => nodes.map(node =>
-      h('div', { style: { marginLeft: `${level * 24}px`, cursor: 'pointer', fontWeight: level === 0 ? 'bold' : 'normal' }, onClick: () => emit('select', node.db_id) }, [
-        node.name,
-        node.children && node.children.length ? renderTree(node.children, level + 1) : null
-      ])
-    )
-    return () => h('div', {}, renderTree(props.tree))
-  }
-})
-</script> 
