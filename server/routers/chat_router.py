@@ -187,19 +187,24 @@ async def chat_agent(agent_name: str,
                     thread_id = str(uuid.uuid4())
                     config["thread_id"] = thread_id
 
-                # 默认模型可根据需要调整
-                # model_name = config.get("model", "openai/gpt-3.5-turbo")
-                model_name = "deepseek/deepseek-chat"
-                chat_model = load_chat_model(model_name)
-                messages = [HumanMessage(content=query)]
-                yield make_chunk(status="init", meta=meta, msg=messages[0].model_dump())
+                yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
 
                 ai_content = ""
                 async for chunk in ragflow_chat_completion(query):
-                    print(111,chunk)
-                    if hasattr(chunk, "content"):
-                        ai_content += chunk.content
-                        yield make_chunk(content=chunk.content, msg=chunk.model_dump(), status="loading")
+                    # 提取内容
+                    content = None
+                    if hasattr(chunk, "choices") and chunk.choices:
+                        delta = getattr(chunk.choices[0], "delta", None)
+                        if delta and hasattr(delta, "content"):
+                            content = delta.content
+                    if content:
+                        ai_content += content
+                        msg = {
+                            "content": content,
+                            "role": "assistant",
+                            "type": "ai"
+                        }
+                        yield make_chunk(content=content, msg=msg, status="loading")
 
                 await save_ragflow_history(
                     thread_id=thread_id,
