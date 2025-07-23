@@ -154,3 +154,25 @@ async def update_dataset_http(
 
 
 
+async def ragflow_chat_completion(query):
+    from openai import OpenAI
+    model = "model"
+    client = OpenAI(api_key="ragflow-k4OThiYTgwNjdkNTExZjA5OTBiODIyYT",
+                    base_url=f"http://47.117.45.109:20006/api/v1/chats_openai/be0d226a63a211f0a894822a712eb46f")
+    logger.info(f"ragflow_chat_completion {query}")
+    completion = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": f"{query}"},
+        ],
+        stream=True
+    )
+
+    stream = True
+    if stream:
+        for chunk in completion:
+            print(chunk)
+            yield chunk
+    else:
+        yield  completion.choices[0].message.content

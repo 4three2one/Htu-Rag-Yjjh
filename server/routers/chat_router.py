@@ -22,6 +22,8 @@ from server.utils.auth_middleware import get_required_user, get_db
 from server.models.user_model import User
 from server.models.thread_model import Thread
 
+from server.third.ragflow_http_api import ragflow_chat_completion
+
 RAGFLOW_HISTORY_DB = os.path.join("saves", "agents", "ragflow", "aio_history.db")
 os.makedirs(os.path.dirname(RAGFLOW_HISTORY_DB), exist_ok=True)
 
@@ -143,6 +145,40 @@ async def chat_agent(agent_name: str,
         }, ensure_ascii=False).encode('utf-8') + b"\n"
 
     # 新增分支：ragflow 直接用ChatOpenAI
+    # if agent_name == "ragflow":
+    #     async def stream_ragflow():
+    #         try:
+    #             thread_id = config.get("thread_id")
+    #             if not thread_id:
+    #                 thread_id = str(uuid.uuid4())
+    #                 config["thread_id"] = thread_id
+    #
+    #             # 默认模型可根据需要调整
+    #             # model_name = config.get("model", "openai/gpt-3.5-turbo")
+    #             model_name = "deepseek/deepseek-chat"
+    #             chat_model = load_chat_model(model_name)
+    #             messages = [HumanMessage(content=query)]
+    #             yield make_chunk(status="init", meta=meta, msg=messages[0].model_dump())
+    #
+    #             ai_content = ""
+    #             async for chunk in chat_model.astream(messages):
+    #                 if hasattr(chunk, "content"):
+    #                     ai_content += chunk.content
+    #                     yield make_chunk(content=chunk.content, msg=chunk.model_dump(), status="loading")
+    #
+    #             await save_ragflow_history(
+    #                 thread_id=thread_id,
+    #                 user_id=current_user.id,
+    #                 agent_id=agent_name,
+    #                 user_msg=query,
+    #                 ai_msg=ai_content
+    #             )
+    #
+    #             yield make_chunk(status="finished", meta=meta)
+    #         except Exception as e:
+    #             import traceback
+    #             yield make_chunk(message=f"Error in ragflow: {e}", status="error")
+    #     return StreamingResponse(stream_ragflow(), media_type='application/json')
     if agent_name == "ragflow":
         async def stream_ragflow():
             try:
@@ -159,7 +195,8 @@ async def chat_agent(agent_name: str,
                 yield make_chunk(status="init", meta=meta, msg=messages[0].model_dump())
 
                 ai_content = ""
-                async for chunk in chat_model.astream(messages):
+                async for chunk in ragflow_chat_completion(query):
+                    print(111,chunk)
                     if hasattr(chunk, "content"):
                         ai_content += chunk.content
                         yield make_chunk(content=chunk.content, msg=chunk.model_dump(), status="loading")
