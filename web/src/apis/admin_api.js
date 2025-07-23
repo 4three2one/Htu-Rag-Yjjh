@@ -359,7 +359,7 @@ export const knowledgeHierarchyApi = {
   getKnowledgeHierarchy: async (db_id) => {
     checkAdminPermission()
     console.log(db_id)
-    return apiGet(`/api/hierarchy/info?db_id=${dbId}`, {}, true)
+    return apiGet(`/api/hierarchy/info?db_id=${db_id}`, {}, true)
   },
 
   /**

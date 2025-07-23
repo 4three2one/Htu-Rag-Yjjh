@@ -5,6 +5,7 @@ from server.routers.base_router import base
 from server.routers.auth_router import auth
 from server.routers.graph_router import graph
 from server.routers.knowledge_router import data as knowledge
+from server.routers.hierarchy_router import data as hierarchy
 
 router = APIRouter()
 router.include_router(base)
@@ -13,3 +14,4 @@ router.include_router(data)
 router.include_router(auth)
 router.include_router(graph)
 router.include_router(knowledge)
+router.include_router(hierarchy)
