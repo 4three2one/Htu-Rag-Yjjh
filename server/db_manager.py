@@ -89,6 +89,7 @@ class DBManager:
         """删除某知识库的层级关系"""
         with self.get_session_context() as session:
             session.query(KnowledgeHierarchy).filter_by(db_id=db_id).delete()
+            session.query(KnowledgeHierarchy).filter_by(parent_db_id=db_id).delete()
             session.commit()
 
     def get_all_knowledge_hierarchy(self):

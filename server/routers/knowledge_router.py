@@ -53,6 +53,8 @@ async def api_create_database(
 async def api_delete_database(db_id, current_user: User = Depends(get_admin_user)):
     logger.debug(f"Delete database {db_id}")
     delete_dataset(db_id)
+    # 级联删除层级结构
+    db_manager.delete_knowledge_hierarchy(db_id)
     return {"message": "删除成功"}
 
 
