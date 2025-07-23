@@ -107,3 +107,50 @@ async def list_datasets_http(
                 "updated_at": dataset.get('updated_at', '')
             })
         return result
+
+
+async def update_dataset_http(
+    dataset_id: str,
+    name: Optional[str] = None,
+    avatar: Optional[str] = None,
+    description: Optional[str] = None,
+    embedding_model: Optional[str] = None,
+    permission: Optional[str] = None,
+    chunk_method: Optional[str] = None,
+    pagerank: Optional[int] = None,
+    parser_config: Optional[dict] = None,
+) -> dict:
+    """
+    通过 HTTP API 更新 ragflow 数据集信息。
+    """
+    url = f"{base_url}/api/v1/datasets/{dataset_id}"
+    payload = {}
+    if name is not None:
+        payload["name"] = name
+    if avatar is not None:
+        payload["avatar"] = avatar
+    if description is not None:
+        payload["description"] = description
+    if embedding_model is not None:
+        payload["embedding_model"] = embedding_model
+    if permission is not None:
+        payload["permission"] = permission
+    if chunk_method is not None:
+        payload["chunk_method"] = chunk_method
+    if pagerank is not None:
+        payload["pagerank"] = pagerank
+    if parser_config is not None:
+        payload["parser_config"] = parser_config
+
+    logger.info(f"更新数据集 {dataset_id}，payload: {payload}")
+    async with httpx.AsyncClient() as client:
+        resp = await client.put(
+            url,
+            headers={**headers, "content-Type": "application/json"},
+            json=payload
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+

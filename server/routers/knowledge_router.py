@@ -2,13 +2,14 @@ import os
 import asyncio
 import traceback
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Body, Form, Query
+from typing import Optional
 
 from src.utils import logger, hashstr
 from src import executor, config, knowledge_base, graph_base
 from server.utils.auth_middleware import get_admin_user
 from server.models.user_model import User
 from server.third.ragflow import *
-from server.third.ragflow_http_api import list_documents_http,list_datasets_http
+from server.third.ragflow_http_api import list_documents_http, list_datasets_http, update_dataset_http
 from server.third.data_transfer import *
 from server.db_manager import db_manager
 
@@ -63,7 +64,7 @@ async def api_get_database_info(db_id: str, current_user: User = Depends(get_adm
 
 @data.post("/add-files")
 async def api_add_files(db_id: str = Body(...), items: list[str] = Body(...), params: dict = Body(...),
-                    current_user: User = Depends(get_admin_user)):
+                        current_user: User = Depends(get_admin_user)):
     logger.debug(f"Add files/urls for db_id {db_id}: {items} {params=}")
 
     # 从 params 中获取 content_type，默认为 'file'
@@ -89,12 +90,28 @@ async def api_add_files(db_id: str = Body(...), items: list[str] = Body(...), pa
 
 @data.delete("/document")
 async def api_delete_document(db_id: str = Body(...), file_id: str = Body(...),
-                          current_user: User = Depends(get_admin_user)):
+                              current_user: User = Depends(get_admin_user)):
     logger.debug(f"DELETE document {file_id} info in {db_id}")
     delete_flag = delete_document(db_id, file_id)
     if delete_flag:
         return {"message": "删除成功"}
     return {"message": "删除失败"}
+
+
+@data.post("/update")
+async def api_update_database_info(
+        db_id: str = Body(...),
+        name: str = Body(...),
+        description: str = Body(...),
+        current_user: User = Depends(get_admin_user)
+):
+    logger.debug(f"Update database {db_id} info: {name}, {description}")
+    try:
+        database =await update_dataset_http(db_id, name=name, description=description)
+        return {"message": "更新成功", "database": database}
+    except Exception as e:
+        logger.error(f"更新数据库失败 {e}, {traceback.format_exc()}")
+        raise HTTPException(status_code=400, detail=f"更新数据库失败: {e}")
 
 
 # %% 待调整的API
@@ -231,28 +248,12 @@ async def add_graph_entity(file_path: str = Body(...), kgdb_name: str | None = B
         return {"message": f"添加实体失败: {e}", "status": "failed"}
 
 
-@data.post("/update")
-async def update_database_info(
-        db_id: str = Body(...),
-        name: str = Body(...),
-        description: str = Body(...),
-        current_user: User = Depends(get_admin_user)
-):
-    logger.debug(f"Update database {db_id} info: {name}, {description}")
-    try:
-        database = knowledge_base.update_database(db_id, name, description)
-        return {"message": "更新成功", "database": database}
-    except Exception as e:
-        logger.error(f"更新数据库失败 {e}, {traceback.format_exc()}")
-        raise HTTPException(status_code=400, detail=f"更新数据库失败: {e}")
-
-
 @data.post("/hierarchy/add")
 async def add_knowledge_hierarchy(
-    db_id: str = Body(...),
-    parent_db_id: str = Body(None),
-    order: int = Body(0),
-    current_user: User = Depends(get_admin_user)
+        db_id: str = Body(...),
+        parent_db_id: str = Body(None),
+        order: int = Body(0),
+        current_user: User = Depends(get_admin_user)
 ):
     try:
         hierarchy = db_manager.add_knowledge_hierarchy(db_id, parent_db_id, order)
@@ -261,6 +262,7 @@ async def add_knowledge_hierarchy(
         logger.error(f"添加知识库层级失败 {e}, {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=f"添加失败: {e}")
 
+
 @data.get("/hierarchy/info")
 async def get_knowledge_hierarchy(db_id: str, current_user: User = Depends(get_admin_user)):
     hierarchy = db_manager.get_knowledge_hierarchy(db_id)
@@ -268,15 +270,18 @@ async def get_knowledge_hierarchy(db_id: str, current_user: User = Depends(get_a
         return {"message": "未找到层级信息", "hierarchy": None}
     return {"hierarchy": hierarchy}  # 直接返回，因为已经是字典了
 
+
 @data.get("/hierarchy/children")
 async def get_children_knowledge(parent_db_id: str, current_user: User = Depends(get_admin_user)):
     children = db_manager.get_children_knowledge(parent_db_id)
     return {"children": children}  # 直接返回，因为已经是字典列表了
 
+
 @data.get("/hierarchy/all")
 async def get_all_knowledge_hierarchy(current_user: User = Depends(get_admin_user)):
     all_hierarchy = db_manager.get_all_knowledge_hierarchy()
     return {"all_hierarchy": all_hierarchy}  # 直接返回，因为已经是字典列表了
+
 
 @data.delete("/hierarchy/delete")
 async def delete_knowledge_hierarchy(db_id: str = Body(...), current_user: User = Depends(get_admin_user)):
