@@ -30,14 +30,19 @@ async def api_get_databases(current_user: User = Depends(get_admin_user)):
 async def api_create_database(
         knowledge_name: str = Body(...),
         description: str = Body(...),
-        parent_db_id: str = Body(...),
+        parent_db_id: Optional[str] = Body(None),
         # embed_model_name: str = Body(...),
         current_user: User = Depends(get_admin_user)
 ):
     try:
         newly_dataset = create_dataset(knowledge_name, description)
         # 插入层次关系
-        db_manager.add_knowledge_hierarchy(newly_dataset['id'], parent_db_id)
+        if parent_db_id and parent_db_id != "null" and parent_db_id != "undefined":
+            db_manager.add_knowledge_hierarchy(newly_dataset['id'], parent_db_id)
+        else:
+            db_manager.add_knowledge_hierarchy(newly_dataset['id'], None)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"创建数据库失败 {e}, {traceback.format_exc()}")
         return {"message": f"创建数据库失败 {e}", "status": "failed"}
@@ -103,12 +108,47 @@ async def api_update_database_info(
         db_id: str = Body(...),
         name: str = Body(...),
         description: str = Body(...),
+        parent_db_id: Optional[str] = Body(None),
         current_user: User = Depends(get_admin_user)
 ):
-    logger.debug(f"Update database {db_id} info: {name}, {description}")
+    logger.debug(f"Update database {db_id} info: {name}, {description},{parent_db_id}")
     try:
-        database =await update_dataset_http(db_id, name=name, description=description)
+        # 检测循环依赖
+        if parent_db_id and parent_db_id != "null" and parent_db_id != "undefined":
+            # 检查是否会造成循环依赖
+            def check_circular_dependency(current_id, target_parent_id, visited=None):
+                if visited is None:
+                    visited = set()
+                
+                # if current_id in visited:
+                #     return False  # 没有循环
+                
+                visited.add(current_id)
+                
+                # 如果目标父级是当前节点，则形成循环
+                if target_parent_id == current_id:
+                    return True
+                
+                # 获取目标父级的父级
+                parent_info = db_manager.get_knowledge_hierarchy(target_parent_id)
+                if parent_info and parent_info.get('parent_db_id'):
+                    return check_circular_dependency(current_id, parent_info['parent_db_id'], visited)
+                
+                return False
+            
+            if check_circular_dependency(db_id, parent_db_id):
+                raise HTTPException(status_code=400, detail="检测到循环依赖，无法设置此父级知识库")
+        
+        database = await update_dataset_http(db_id, name=name, description=description)
+        # 更新层次结构
+        db_manager.delete_knowledge_hierarchy(db_id)
+        if parent_db_id and parent_db_id != "null" and parent_db_id != "undefined":
+            db_manager.add_knowledge_hierarchy(db_id, parent_db_id)
+        else:
+            db_manager.add_knowledge_hierarchy(db_id, None)
         return {"message": "更新成功", "database": database}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"更新数据库失败 {e}, {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=f"更新数据库失败: {e}")

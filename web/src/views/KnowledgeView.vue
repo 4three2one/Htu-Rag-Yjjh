@@ -326,14 +326,11 @@ const createKnowledge = async () => {
     knowledge_name: newKnowledge.name.trim(),
     description: newKnowledge.description?.trim() || '',
     type: newKnowledge.type || 'document',
-    parent_db_id: newKnowledge.parent_db_id || null, // 新增父级知识库字段
+    parent_db_id: newKnowledge.parent_db_id || null, // 确保undefined转换为null
   }
   try {
     const data = await knowledgeManagementApi.createKnowledge(requestData)
-    // 创建成功后，写入层级关系
-    if (data && data.db_id) {
-      await knowledgeHierarchyApi.addKnowledgeHierarchy({ db_id: data.db_id, parent_db_id: newKnowledge.parent_db_id })
-    }
+    // 后端已经在创建时处理了层级关系，无需重复添加
     loadKnowledgeItems()
     resetNewKnowledge()
     message.success('创建成功')
