@@ -6,7 +6,7 @@ from src.agents.registry import Configuration
 from src.agents.tools_factory import get_all_tools
 
 @dataclass(kw_only=True)
-class ChatbotConfiguration(Configuration):
+class RagFlowConfiguration(Configuration):
     """Chatbot 的配置
 
     配置说明：

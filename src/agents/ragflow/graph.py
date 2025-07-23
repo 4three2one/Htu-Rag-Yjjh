@@ -14,14 +14,14 @@ from src import config as sys_config
 from src.utils import logger
 from src.agents.registry import State, BaseAgent
 from src.agents.utils import load_chat_model, get_cur_time_with_utc
-from src.agents.chatbot.configuration import ChatbotConfiguration
+from src.agents.ragflow.configuration import RagFlowConfiguration
 from src.agents.tools_factory import get_all_tools
 
-class ChatbotAgent(BaseAgent):
-    name = "chatbot"
-    description = "基础的对话机器人，可以回答问题，默认不使用任何工具，可在配置中启用需要的工具。"
-    requirements = ["TAVILY_API_KEY", "ZHIPUAI_API_KEY"]
-    config_schema = ChatbotConfiguration
+class RagflowAgent(BaseAgent):
+    name = "ragflow"
+    description = "知识问答，聊天助手。"
+    requirements = []
+    config_schema = RagFlowConfiguration
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -99,7 +99,7 @@ class ChatbotAgent(BaseAgent):
         return AsyncSqliteSaver(await self.get_async_conn())
 
 def main():
-    agent = ChatbotAgent(ChatbotConfiguration())
+    agent = RagflowAgent(RagFlowConfiguration())
 
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}

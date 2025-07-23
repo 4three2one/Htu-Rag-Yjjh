@@ -1,4 +1,4 @@
-from .graph import ChatbotAgent
-from .configuration import ChatbotConfiguration
+from .graph import RagflowAgent
+from .configuration import RagFlowConfiguration
 
-__all__ = ["ChatbotAgent", "ChatbotConfiguration"]
+__all__ = ["RagflowAgent", "RagFlowConfiguration"]
