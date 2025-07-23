@@ -348,7 +348,7 @@ export const knowledgeHierarchyApi = {
    */
   addKnowledgeHierarchy: async (data) => {
     checkAdminPermission()
-    return apiPost('/api/knowledge/hierarchy/add', data, {}, true)
+    return apiPost('/api/hierarchy/add', data, {}, true)
   },
 
   /**
@@ -358,7 +358,8 @@ export const knowledgeHierarchyApi = {
    */
   getKnowledgeHierarchy: async (db_id) => {
     checkAdminPermission()
-    return apiGet('/api/knowledge/hierarchy/info', { db_id }, true)
+    console.log(db_id)
+    return apiGet(`/api/hierarchy/info?db_id=${dbId}`, {}, true)
   },
 
   /**
@@ -368,7 +369,7 @@ export const knowledgeHierarchyApi = {
    */
   getChildrenKnowledge: async (parent_db_id) => {
     checkAdminPermission()
-    return apiGet('/api/knowledge/hierarchy/children', { parent_db_id }, true)
+    return apiGet('/api/hierarchy/children', { parent_db_id }, true)
   },
 
   /**
@@ -377,7 +378,7 @@ export const knowledgeHierarchyApi = {
    */
   getAllKnowledgeHierarchy: async () => {
     checkAdminPermission()
-    return apiGet('/api/knowledge/hierarchy/all', {}, true)
+    return apiGet('/api/hierarchy/all', {}, true)
   },
 
   /**
@@ -387,7 +388,7 @@ export const knowledgeHierarchyApi = {
    */
   deleteKnowledgeHierarchy: async (db_id) => {
     checkAdminPermission()
-    return apiDelete('/api/knowledge/hierarchy/delete', { db_id }, true)
+    return apiDelete('/api/hierarchy/delete', { db_id }, true)
   },
 }
 

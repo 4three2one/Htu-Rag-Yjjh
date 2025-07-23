@@ -338,6 +338,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useConfigStore } from '@/stores/config'
 import { useUserStore } from '@/stores/user'
 import { knowledgeManagementApi } from '@/apis/admin_api'
+import { knowledgeHierarchyApi } from '@/apis/admin_api'
 import {
   ReadOutlined,
   LeftOutlined,
@@ -886,7 +887,17 @@ const addFilesModalVisible = ref(false);
 const showEditModal = async () => {
   editForm.name = database.value.name || '';
   editForm.description = database.value.description || '';
-  editForm.parent_db_id = database.value.parent_db_id || null;
+  // 优先从层级表获取parent_db_id
+  let parentId = null;
+  try {
+    const res = await knowledgeHierarchyApi.getKnowledgeHierarchy(database.value.db_id);
+    if (res && res.hierarchy && res.hierarchy.parent_db_id) {
+      parentId = res.hierarchy.parent_db_id;
+    }
+  } catch (e) {
+    parentId = database.value.parent_db_id || null;
+  }
+  editForm.parent_db_id = parentId;
   await loadAllKnowledgeList()
   editModalVisible.value = true;
 };
