@@ -25,7 +25,7 @@ class RagFlowConfiguration(Configuration):
     )
 
     model: str = field(
-        default="zhipu/glm-4-plus",
+        default="deepseek/deepseek-chat",
         metadata={
             "name": "智能体模型",
             "configurable": True,

@@ -1,6 +1,7 @@
 import asyncio
 from src.agents.chatbot import ChatbotAgent
 from src.agents.react import ReActAgent
+from src.agents.ragflow import RagflowAgent
 
 class AgentManager:
     def __init__(self):
@@ -33,6 +34,7 @@ class AgentManager:
 agent_manager = AgentManager()
 # agent_manager.register_agent(ChatbotAgent)
 # agent_manager.register_agent(ReActAgent)  # 暂时屏蔽 ReActAgent
+agent_manager.register_agent(RagflowAgent)
 agent_manager.init_all_agents()
 
 __all__ = ["agent_manager"]

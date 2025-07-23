@@ -95,7 +95,7 @@ async def chat_agent(agent_name: str,
                meta: dict = Body({}),
                current_user: User = Depends(get_required_user)):
     """使用特定智能体进行对话（需要登录）"""
-
+    logger.info(f"starting chat with: {agent_name}")
     meta.update({
         "query": query,
         "agent_name": agent_name,
@@ -103,6 +103,37 @@ async def chat_agent(agent_name: str,
         "thread_id": config.get("thread_id"),
         "user_id": current_user.id
     })
+
+    from src.agents.utils import load_chat_model
+    from langchain_core.messages import HumanMessage
+    import json
+
+    def make_chunk(content=None, **kwargs):
+        return json.dumps({
+            "request_id": meta.get("request_id"),
+            "response": content,
+            **kwargs
+        }, ensure_ascii=False).encode('utf-8') + b"\n"
+
+    # 新增分支：ragflow 直接用ChatOpenAI
+    if agent_name == "ragflow":
+        async def stream_ragflow():
+            try:
+                # 默认模型可根据需要调整
+                # model_name = config.get("model", "openai/gpt-3.5-turbo")
+                model_name = "deepseek/deepseek-chat"
+                chat_model = load_chat_model(model_name)
+                messages = [HumanMessage(content=query)]
+                yield make_chunk(status="init", meta=meta, msg=messages[0].model_dump())
+                async for chunk in chat_model.astream(messages):
+                    if hasattr(chunk, "content"):
+                        yield make_chunk(content=chunk.content, msg=chunk.model_dump(), status="loading")
+                yield make_chunk(status="finished", meta=meta)
+            except Exception as e:
+                import traceback
+                yield make_chunk(message=f"Error in ragflow: {e}", status="error")
+        return StreamingResponse(stream_ragflow(), media_type='application/json')
+
 
     # 将meta和thread_id整合到config中
     def make_chunk(content=None, **kwargs):
