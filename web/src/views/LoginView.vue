@@ -18,7 +18,7 @@
     <div class="login-container">
       <div class="login-logo">
         <!-- <img src="@/assets/logo.svg" alt="Logo" v-if="false" /> -->
-        <h1>知识问答管理系统</h1>
+        <h1>引江济淮智能问答助手</h1>
       </div>
 
       <!-- 初始化管理员表单 -->
@@ -97,18 +97,18 @@
             </a-input-password>
           </a-form-item>
 
-          <a-form-item>
+<!--          <a-form-item>
             <div class="login-options">
               <a-checkbox v-model:checked="rememberMe" @click="showDevMessage">记住我</a-checkbox>
               <a class="forgot-password" @click="showDevMessage">忘记密码?</a>
             </div>
-          </a-form-item>
+          </a-form-item>-->
 
           <a-form-item>
             <a-button type="primary" html-type="submit" :loading="loading" block>登录</a-button>
           </a-form-item>
 
-          <!-- 第三方登录选项 -->
+<!--          &lt;!&ndash; 第三方登录选项 &ndash;&gt;
           <div class="third-party-login">
             <div class="divider">
               <span>其他登录方式</span>
@@ -130,7 +130,7 @@
                 </a-button>
               </a-tooltip>
             </div>
-          </div>
+          </div>-->
         </a-form>
       </div>
 
@@ -140,11 +140,11 @@
       </div>
 
       <!-- 页脚 -->
-      <div class="login-footer">
+<!--      <div class="login-footer">
         <a @click="showDevMessage">联系我们</a>
         <a @click="showDevMessage">使用帮助</a>
         <a @click="showDevMessage">隐私政策</a>
-      </div>
+      </div>-->
     </div>
   </div>
 </template>

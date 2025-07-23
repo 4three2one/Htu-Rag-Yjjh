@@ -104,6 +104,7 @@ const mainList = [{
     path: '/database',
     icon: LibraryBig,
     activeIcon: LibraryBig,
+    hidden: true, // 隐藏知识库页面
   }, {
     name: '知识管理',
     path: '/knowledge',
@@ -149,7 +150,7 @@ const mainList = [{
       ></div>
 
 
-      <div class="github nav-item">
+<!--      <div class="github nav-item">
         <a-tooltip placement="right">
           <template #title>欢迎 Star</template>
           <a href="https://github.com/xerrors/Yuxi-Know" target="_blank" class="github-link">
@@ -159,7 +160,7 @@ const mainList = [{
             </span>
           </a>
         </a-tooltip>
-      </div>
+      </div>-->
       <!-- <div class="nav-item api-docs">
         <a-tooltip placement="right">
           <template #title>接口文档 {{ apiDocsUrl }}</template>

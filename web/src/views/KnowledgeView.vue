@@ -78,7 +78,7 @@
       <!-- 右侧层级预览区域 (2/10) -->
       <div class="knowledge-right">
         <div class="hierarchy-preview">
-          <h3 class="hierarchy-title">层级结构预览</h3>
+          <h3 class="hierarchy-title">结构预览</h3>
           <div class="hierarchy-content">
             <div v-if="state.loading" class="hierarchy-loading">
               <p>加载层级结构中...</p>
