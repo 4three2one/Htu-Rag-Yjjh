@@ -27,44 +27,76 @@
         <a-button key="submit" type="primary" :loading="state.creating" @click="createKnowledge">创建</a-button>
       </template>
     </a-modal>
-    <div class="knowledge-items">
-      <!-- 调试信息 -->
-      <div v-if="knowledgeItems.length === 0" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #666;">
-        正在加载知识项... (数量: {{ knowledgeItems.length }})
-      </div>
-      
-      <div class="new-knowledge knowledge-card" @click="state.openNewKnowledgeModel=true">
-        <div class="top">
-          <div class="icon"><BookPlus /></div>
-          <div class="info">
-            <h3>新建知识项</h3>
+
+    <!-- 左右分栏布局 -->
+    <div class="knowledge-layout">
+      <!-- 左侧内容区域 (8/10) -->
+      <div class="knowledge-left">
+        <div class="knowledge-items">
+          <!-- 调试信息 -->
+          <div v-if="knowledgeItems.length === 0" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #666;">
+            正在加载知识项... (数量: {{ knowledgeItems.length }})
           </div>
-        </div>
-        <p>创建和管理您的知识内容，包括文档、链接、笔记等，以增强 LLM 的上下文理解能力。</p>
-      </div>
-      <div
-        v-for="knowledge in knowledgeItems"
-        :key="knowledge.id"
-        class="knowledge knowledge-card"
-        @click="navigateToKnowledge(knowledge.id)">
-        <div class="top">
-          <div class="icon"><ReadFilled /></div>
-          <div class="info">
-            <h3>{{ knowledge.name }}</h3>
-            <div class="meta-row-time">
-              <span class="meta-right" v-if="knowledge.created_at">
-                {{ formatCreateTime(knowledge.created_at) }}
+          
+          <div class="new-knowledge knowledge-card" @click="state.openNewKnowledgeModel=true">
+            <div class="top">
+              <div class="icon"><BookPlus /></div>
+              <div class="info">
+                <h3>新建知识项</h3>
+              </div>
+            </div>
+            <p>创建和管理您的知识内容，包括文档、链接、笔记等，以增强 LLM 的上下文理解能力。</p>
+          </div>
+          <div
+            v-for="knowledge in knowledgeItems"
+            :key="knowledge.id"
+            class="knowledge knowledge-card"
+            @click="navigateToKnowledge(knowledge.id)">
+            <div class="top">
+              <div class="icon"><ReadFilled /></div>
+              <div class="info">
+                <h3>{{ knowledge.name }}</h3>
+                <div class="meta-row-time">
+                  <span class="meta-right" v-if="knowledge.created_at">
+                    {{ formatCreateTime(knowledge.created_at) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="meta-bottom">
+              <span class="meta-left">
+                {{ (knowledge.content_count ?? 0) + ' 文档' }}
+              </span>
+              <span class="meta-embed">
+                <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
               </span>
             </div>
           </div>
         </div>
-        <div class="meta-bottom">
-          <span class="meta-left">
-            {{ (knowledge.content_count ?? 0) + ' 文档' }}
-          </span>
-          <span class="meta-embed">
-            <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
-          </span>
+      </div>
+
+      <!-- 右侧层级预览区域 (2/10) -->
+      <div class="knowledge-right">
+        <div class="hierarchy-preview">
+          <h3 class="hierarchy-title">层级结构预览</h3>
+          <div class="hierarchy-content">
+            <a-tree
+              v-if="hierarchyTreeData.length > 0"
+              :tree-data="hierarchyTreeData"
+              :default-expand-all="true"
+              :show-line="true"
+              :show-icon="true"
+              class="hierarchy-tree"
+            >
+              <template #title="{ title, key }">
+                <span class="tree-node-title">{{ title }}</span>
+              </template>
+            </a-tree>
+            <div v-else class="hierarchy-empty">
+              <p>暂无层级结构</p>
+              <p class="hierarchy-tip">创建知识项时可选择父级来构建层级关系</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -112,6 +144,9 @@ const newKnowledge = reactive({
   parent_db_id: null,
 })
 
+// 层级树数据
+const hierarchyTreeData = ref([])
+
 const loadKnowledgeItems = () => {
   state.loading = true
   knowledgeManagementApi.getKnowledge()
@@ -121,6 +156,8 @@ const loadKnowledgeItems = () => {
       knowledgeItems.value = data.knowledge_items || []
       console.log('设置后的knowledgeItems:', knowledgeItems.value)
       state.loading = false
+      // 加载层级结构
+      loadHierarchyStructure()
     })
     .catch(error => {
       console.error('加载知识项列表失败:', error);
@@ -129,6 +166,97 @@ const loadKnowledgeItems = () => {
       }
       state.loading = false
     })
+}
+
+// 加载层级结构
+const loadHierarchyStructure = async () => {
+  try {
+    const hierarchyData = await knowledgeHierarchyApi.getAllKnowledgeHierarchy()
+    console.log('层级数据:', hierarchyData)
+    
+    if (hierarchyData.all_hierarchy && hierarchyData.all_hierarchy.length > 0) {
+      // 构建树形结构
+      const treeData = buildHierarchyTree(hierarchyData.all_hierarchy, knowledgeItems.value)
+      hierarchyTreeData.value = treeData
+    } else {
+      hierarchyTreeData.value = []
+    }
+  } catch (error) {
+    console.error('加载层级结构失败:', error)
+    hierarchyTreeData.value = []
+  }
+}
+
+// 构建层级树形结构
+const buildHierarchyTree = (hierarchyList, knowledgeItems) => {
+  // 创建知识项映射
+  const knowledgeMap = new Map()
+  knowledgeItems.forEach(item => {
+    knowledgeMap.set(item.db_id, item)
+  })
+
+  // 创建层级映射
+  const hierarchyMap = new Map()
+  hierarchyList.forEach(h => {
+    hierarchyMap.set(h.db_id, h)
+  })
+
+  // 构建树形结构
+  const treeData = []
+  const processed = new Set()
+
+  // 先处理根节点（没有父级的节点）
+  hierarchyList.forEach(hierarchy => {
+    if (!hierarchy.parent_db_id && !processed.has(hierarchy.db_id)) {
+      const knowledge = knowledgeMap.get(hierarchy.db_id)
+      if (knowledge) {
+        const node = {
+          key: hierarchy.db_id,
+          title: knowledge.name,
+          children: getChildren(hierarchy.db_id, hierarchyList, knowledgeMap, processed)
+        }
+        treeData.push(node)
+        processed.add(hierarchy.db_id)
+      }
+    }
+  })
+
+  // 处理没有层级关系的知识项（作为根节点）
+  knowledgeItems.forEach(item => {
+    if (!processed.has(item.db_id)) {
+      const node = {
+        key: item.db_id,
+        title: item.name,
+        children: []
+      }
+      treeData.push(node)
+      processed.add(item.db_id)
+    }
+  })
+
+  return treeData
+}
+
+// 递归获取子节点
+const getChildren = (parentId, hierarchyList, knowledgeMap, processed) => {
+  const children = []
+  
+  hierarchyList.forEach(hierarchy => {
+    if (hierarchy.parent_db_id === parentId && !processed.has(hierarchy.db_id)) {
+      const knowledge = knowledgeMap.get(hierarchy.db_id)
+      if (knowledge) {
+        const node = {
+          key: hierarchy.db_id,
+          title: knowledge.name,
+          children: getChildren(hierarchy.db_id, hierarchyList, knowledgeMap, processed)
+        }
+        children.push(node)
+        processed.add(hierarchy.db_id)
+      }
+    }
+  })
+
+  return children
 }
 
 const resetNewKnowledge = () => {
@@ -209,8 +337,76 @@ const parentOptions = computed(() => {
 .knowledge-actions, .content-actions {
   margin-bottom: 20px;
 }
-.knowledge-items {
+
+// 左右分栏布局
+.knowledge-layout {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 120px);
   padding: 20px;
+}
+
+.knowledge-left {
+  flex: 8;
+  overflow-y: auto;
+}
+
+.knowledge-right {
+  flex: 2;
+  min-width: 250px;
+  max-width: 300px;
+}
+
+// 层级预览样式
+.hierarchy-preview {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0px 1px 2px 0px rgba(16,24,40,.06),0px 1px 3px 0px rgba(16,24,40,.1);
+  border: 2px solid white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.hierarchy-title {
+  padding: 16px 20px;
+  margin: 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.hierarchy-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.hierarchy-tree {
+  .tree-node-title {
+    font-size: 14px;
+    color: #333;
+  }
+}
+
+.hierarchy-empty {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  
+  p {
+    margin: 8px 0;
+    font-size: 14px;
+  }
+  
+  .hierarchy-tip {
+    font-size: 12px;
+    color: #ccc;
+  }
+}
+
+.knowledge-items {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
@@ -349,5 +545,18 @@ const parentOptions = computed(() => {
 }
 .meta-embed {
   margin-left: 8px;
+}
+
+// 响应式设计
+@media (max-width: 1200px) {
+  .knowledge-layout {
+    flex-direction: column;
+  }
+  
+  .knowledge-right {
+    min-width: auto;
+    max-width: none;
+    height: 300px;
+  }
 }
 </style> 
