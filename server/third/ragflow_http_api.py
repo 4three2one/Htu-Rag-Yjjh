@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any, List
 import os
 from src.utils import logger
 import requests
+import json
 
 # 配置 ragflow HTTP API 基础地址和 API KEY
 api_key = os.getenv("RAGFLOW_API_KEY", "r")
@@ -181,6 +182,7 @@ async def ragflow_chat_completion_openai(query):
 
 def ragflow_chat_completion_origin(question, session_id="518834ec684b11f0bb25822a712eb46f", chat_id="be0d226a63a211f0a894822a712eb46f",
                                    stream=True):
+
     payload = {
         "question": question,
         "stream": stream,
@@ -205,8 +207,20 @@ def ragflow_chat_completion_origin(question, session_id="518834ec684b11f0bb25822
             # 处理流式响应
             def generate():
                 for line in response.iter_lines():
-                    if line:
-                        yield line.decode('utf-8')
+                    line = line.decode('utf-8')
+                    if line.startswith("data:"):
+                        data = line[5:]
+                        try:
+                            chunk_data = json.loads(data)
+                            yield chunk_data
+                        except json.JSONDecodeError:
+                            continue
+                    elif line.strip():
+                        try:
+                            chunk_data = json.loads(line.strip())
+                            yield chunk_data
+                        except json.JSONDecodeError:
+                            continue
 
             return generate()
         else:
