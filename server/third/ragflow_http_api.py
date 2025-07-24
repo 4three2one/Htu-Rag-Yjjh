@@ -2,7 +2,7 @@ import httpx
 from typing import Optional, Dict, Any, List
 import os
 from src.utils import logger
-import json
+import requests
 
 # 配置 ragflow HTTP API 基础地址和 API KEY
 api_key = os.getenv("RAGFLOW_API_KEY", "r")
@@ -12,15 +12,16 @@ headers = {
     "Authorization": f"Bearer {api_key}"
 }
 
+
 async def list_documents_http(
-    dataset_id: str,
-    page: int = 1,
-    page_size: int = 30,
-    orderby: Optional[str] = None,
-    desc: Optional[bool] = None,
-    keywords: Optional[str] = None,
-    document_id: Optional[str] = None,
-    document_name: Optional[str] = None
+        dataset_id: str,
+        page: int = 1,
+        page_size: int = 30,
+        orderby: Optional[str] = None,
+        desc: Optional[bool] = None,
+        keywords: Optional[str] = None,
+        document_id: Optional[str] = None,
+        document_name: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     通过 HTTP API 获取 ragflow 数据集下的文档列表。
@@ -45,7 +46,7 @@ async def list_documents_http(
     async with httpx.AsyncClient() as client:
         resp = await client.get(url, headers=headers, params=params)
         resp.raise_for_status()
-        json_resp=resp.json()
+        json_resp = resp.json()
         documents = json_resp['data']['docs']
         db_files = {}
         for doc in documents:
@@ -65,14 +66,13 @@ async def list_documents_http(
         return db_files
 
 
-
 async def list_datasets_http(
-    page: int = 1,
-    page_size: int = 30,
-    orderby: Optional[str] = None,
-    desc: Optional[bool] = None,
-    name: Optional[str] = None,
-    dataset_id: Optional[str] = None
+        page: int = 1,
+        page_size: int = 30,
+        orderby: Optional[str] = None,
+        desc: Optional[bool] = None,
+        name: Optional[str] = None,
+        dataset_id: Optional[str] = None
 ) -> List[Any]:
     """
     通过 HTTP API 获取 ragflow 的数据集列表。
@@ -95,9 +95,9 @@ async def list_datasets_http(
     async with httpx.AsyncClient() as client:
         resp = await client.get(url, headers=headers, params=params)
         resp.raise_for_status()
-        json_resp=resp.json()
+        json_resp = resp.json()
         datasets = json_resp['data']
-        result=[]
+        result = []
         for dataset in datasets:
             result.append({
                 "id": dataset.get('id', ''),
@@ -112,15 +112,15 @@ async def list_datasets_http(
 
 
 async def update_dataset_http(
-    dataset_id: str,
-    name: Optional[str] = None,
-    avatar: Optional[str] = None,
-    description: Optional[str] = None,
-    embedding_model: Optional[str] = None,
-    permission: Optional[str] = None,
-    chunk_method: Optional[str] = None,
-    pagerank: Optional[int] = None,
-    parser_config: Optional[dict] = None,
+        dataset_id: str,
+        name: Optional[str] = None,
+        avatar: Optional[str] = None,
+        description: Optional[str] = None,
+        embedding_model: Optional[str] = None,
+        permission: Optional[str] = None,
+        chunk_method: Optional[str] = None,
+        pagerank: Optional[int] = None,
+        parser_config: Optional[dict] = None,
 ) -> dict:
     """
     通过 HTTP API 更新 ragflow 数据集信息。
@@ -155,7 +155,6 @@ async def update_dataset_http(
         return resp.json()
 
 
-
 async def ragflow_chat_completion_openai(query):
     from openai import OpenAI
     model = "model"
@@ -177,4 +176,43 @@ async def ragflow_chat_completion_openai(query):
             print(chunk)
             yield chunk
     else:
-        yield  completion.choices[0].message.content
+        yield completion.choices[0].message.content
+
+
+def ragflow_chat_completion_origin(question, session_id="518834ec684b11f0bb25822a712eb46f", chat_id="be0d226a63a211f0a894822a712eb46f",
+                                   stream=True):
+    payload = {
+        "question": question,
+        "stream": stream,
+        "session_id": session_id
+    }
+
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+
+        response = requests.post(
+            f"{base_url}/api/v1/chats/{chat_id}/completions",
+            headers=headers,
+            json=payload,
+            stream=stream
+        )
+        response.raise_for_status()
+
+        if stream:
+            # 处理流式响应
+            def generate():
+                for line in response.iter_lines():
+                    if line:
+                        yield line.decode('utf-8')
+
+            return generate()
+        else:
+            # 处理非流式响应
+            return response.json()
+
+    except requests.exceptions.RequestException as e:
+        print(f"请求RAGFlow API时出错: {e}")
+        return None
