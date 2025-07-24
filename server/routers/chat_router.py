@@ -179,98 +179,97 @@ async def chat_agent(agent_name: str,
     #             import traceback
     #             yield make_chunk(message=f"Error in ragflow: {e}", status="error")
     #     return StreamingResponse(stream_ragflow(), media_type='application/json')
-    if agent_name == "ragflow":
-        async def stream_ragflow():
-            try:
-                thread_id = config.get("thread_id")
-                if not thread_id:
-                    thread_id = str(uuid.uuid4())
-                    config["thread_id"] = thread_id
-
-                yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
-
-                ai_content = ""
-                async for chunk in ragflow_chat_completion(query):
-                    # 提取内容
-                    content = None
-                    if hasattr(chunk, "choices") and chunk.choices:
-                        delta = getattr(chunk.choices[0], "delta", None)
-                        if delta and hasattr(delta, "content"):
-                            content = delta.content
-                    if content:
-                        ai_content += content
-                        msg = {
-                            "content": content,
-                            "role": "assistant",
-                            "type": "ai"
-                        }
-                        yield make_chunk(content=content, msg=msg, status="loading")
-
-                await save_ragflow_history(
-                    thread_id=thread_id,
-                    user_id=current_user.id,
-                    agent_id=agent_name,
-                    user_msg=query,
-                    ai_msg=ai_content
-                )
-
-                yield make_chunk(status="finished", meta=meta)
-            except Exception as e:
-                import traceback
-                yield make_chunk(message=f"Error in ragflow: {e}", status="error")
-        return StreamingResponse(stream_ragflow(), media_type='application/json')
-
-
-    # 将meta和thread_id整合到config中
-    def make_chunk(content=None, **kwargs):
-
-        return json.dumps({
-            "request_id": meta.get("request_id"),
-            "response": content,
-            **kwargs
-        }, ensure_ascii=False).encode('utf-8') + b"\n"
-
-    async def stream_messages():
-
-        # 代表服务端已经收到了请求
-        yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
-
+    async def stream_ragflow():
         try:
-            agent = agent_manager.get_agent(agent_name)
-        except Exception as e:
-            logger.error(f"Error getting agent {agent_name}: {e}, {traceback.format_exc()}")
-            yield make_chunk(message=f"Error getting agent {agent_name}: {e}", status="error")
-            return
+            thread_id = config.get("thread_id")
+            if not thread_id:
+                thread_id = str(uuid.uuid4())
+                config["thread_id"] = thread_id
 
-        messages = [{"role": "user", "content": query}]
+            yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
 
-        # 构造运行时配置，如果没有thread_id则生成一个
-        config["user_id"] = current_user.id
-        if "thread_id" not in config or not config["thread_id"]:
-            config["thread_id"] = str(uuid.uuid4())
-            logger.debug(f"没有thread_id，生成一个: {config['thread_id']=}")
+            ai_content = ""
+            async for chunk in ragflow_chat_completion(query):
+                # 提取内容
+                content = None
+                if hasattr(chunk, "choices") and chunk.choices:
+                    delta = getattr(chunk.choices[0], "delta", None)
+                    if delta and hasattr(delta, "content"):
+                        content = delta.content
+                if content:
+                    ai_content += content
+                    msg = {
+                        "content": content,
+                        "role": "assistant",
+                        "type": "ai"
+                    }
+                    yield make_chunk(content=content, msg=msg, status="loading")
 
-        runnable_config = {"configurable": {**config}}
-
-        try:
-            async for msg, metadata in agent.stream_messages(messages, config_schema=runnable_config):
-                # logger.debug(f"msg: {msg.model_dump()}, metadata: {metadata}")
-                if isinstance(msg, AIMessageChunk):
-                    yield make_chunk(content=msg.content,
-                                    msg=msg.model_dump(),
-                                    metadata=metadata,
-                                    status="loading")
-                else:
-                    yield make_chunk(msg=msg.model_dump(),
-                                    metadata=metadata,
-                                    status="loading")
+            await save_ragflow_history(
+                thread_id=thread_id,
+                user_id=current_user.id,
+                agent_id=agent_name,
+                user_msg=query,
+                ai_msg=ai_content
+            )
 
             yield make_chunk(status="finished", meta=meta)
         except Exception as e:
-            logger.error(f"Error streaming messages: {e}, {traceback.format_exc()}")
-            yield make_chunk(message=f"Error streaming messages: {e}", status="error")
+            import traceback
+            yield make_chunk(message=f"Error in ragflow: {e}", status="error")
+    return StreamingResponse(stream_ragflow(), media_type='application/json')
 
-    return StreamingResponse(stream_messages(), media_type='application/json')
+
+    # 将meta和thread_id整合到config中
+    # def make_chunk(content=None, **kwargs):
+    #
+    #     return json.dumps({
+    #         "request_id": meta.get("request_id"),
+    #         "response": content,
+    #         **kwargs
+    #     }, ensure_ascii=False).encode('utf-8') + b"\n"
+    #
+    # async def stream_messages():
+    #
+    #     # 代表服务端已经收到了请求
+    #     yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
+    #
+    #     try:
+    #         agent = agent_manager.get_agent(agent_name)
+    #     except Exception as e:
+    #         logger.error(f"Error getting agent {agent_name}: {e}, {traceback.format_exc()}")
+    #         yield make_chunk(message=f"Error getting agent {agent_name}: {e}", status="error")
+    #         return
+    #
+    #     messages = [{"role": "user", "content": query}]
+    #
+    #     # 构造运行时配置，如果没有thread_id则生成一个
+    #     config["user_id"] = current_user.id
+    #     if "thread_id" not in config or not config["thread_id"]:
+    #         config["thread_id"] = str(uuid.uuid4())
+    #         logger.debug(f"没有thread_id，生成一个: {config['thread_id']=}")
+    #
+    #     runnable_config = {"configurable": {**config}}
+    #
+    #     try:
+    #         async for msg, metadata in agent.stream_messages(messages, config_schema=runnable_config):
+    #             # logger.debug(f"msg: {msg.model_dump()}, metadata: {metadata}")
+    #             if isinstance(msg, AIMessageChunk):
+    #                 yield make_chunk(content=msg.content,
+    #                                 msg=msg.model_dump(),
+    #                                 metadata=metadata,
+    #                                 status="loading")
+    #             else:
+    #                 yield make_chunk(msg=msg.model_dump(),
+    #                                 metadata=metadata,
+    #                                 status="loading")
+    #
+    #         yield make_chunk(status="finished", meta=meta)
+    #     except Exception as e:
+    #         logger.error(f"Error streaming messages: {e}, {traceback.format_exc()}")
+    #         yield make_chunk(message=f"Error streaming messages: {e}", status="error")
+    #
+    # return StreamingResponse(stream_messages(), media_type='application/json')
 
 @chat.get("/models")
 async def get_chat_models(model_provider: str, current_user: User = Depends(get_admin_user)):
@@ -323,36 +322,36 @@ async def get_agent_history(
     current_user: User = Depends(get_required_user)
 ):
     """获取智能体历史消息（需要登录）"""
-    if agent_name == "ragflow":
-        async with aiosqlite.connect(RAGFLOW_HISTORY_DB) as db:
-            cursor = await db.execute(
-                "SELECT role, content, create_at FROM history WHERE thread_id=? AND user_id=? AND agent_id=? ORDER BY id ASC",
-                (thread_id, current_user.id, agent_name)
-            )
-            rows = await cursor.fetchall()
-            history = [
-                {
-                    "role": row[0],
-                    "type": "human" if row[0] == "user" else "ai",
-                    "content": row[1],
-                    "create_at": row[2]
-                }
-                for row in rows
-            ]
-        return {"history": history}
-    try:
-        # 获取Agent实例和配置类
-        agent = agent_manager.get_agent(agent_name)
-        if not agent:
-            raise HTTPException(status_code=404, detail=f"智能体 {agent_name} 不存在")
-
-        # 获取历史消息
-        history = await agent.get_history(user_id=current_user.id, thread_id=thread_id)
-        return {"history": history}
-
-    except Exception as e:
-        logger.error(f"获取智能体历史消息出错: {e}, {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"获取智能体历史消息出错: {str(e)}")
+    # if agent_name == "ragflow":
+    async with aiosqlite.connect(RAGFLOW_HISTORY_DB) as db:
+        cursor = await db.execute(
+            "SELECT role, content, create_at FROM history WHERE thread_id=? AND user_id=? AND agent_id=? ORDER BY id ASC",
+            (thread_id, current_user.id, agent_name)
+        )
+        rows = await cursor.fetchall()
+        history = [
+            {
+                "role": row[0],
+                "type": "human" if row[0] == "user" else "ai",
+                "content": row[1],
+                "create_at": row[2]
+            }
+            for row in rows
+        ]
+    return {"history": history}
+    # try:
+    #     # 获取Agent实例和配置类
+    #     agent = agent_manager.get_agent(agent_name)
+    #     if not agent:
+    #         raise HTTPException(status_code=404, detail=f"智能体 {agent_name} 不存在")
+    #
+    #     # 获取历史消息
+    #     history = await agent.get_history(user_id=current_user.id, thread_id=thread_id)
+    #     return {"history": history}
+    #
+    # except Exception as e:
+    #     logger.error(f"获取智能体历史消息出错: {e}, {traceback.format_exc()}")
+    #     raise HTTPException(status_code=500, detail=f"获取智能体历史消息出错: {str(e)}")
 
 @chat.get("/agent/{agent_name}/config")
 async def get_agent_config(
