@@ -2,10 +2,12 @@ import httpx
 from typing import Optional, Dict, Any, List
 import os
 from src.utils import logger
+import json
 
 # 配置 ragflow HTTP API 基础地址和 API KEY
-api_key = os.getenv("RAGFLOW_API_KEY", "ragflow-RmMDAyNzJlNWE0MjExZjA4MGMyN2VjZG")
-base_url = os.getenv("RAGFLOW_BASE_URL", "http://47.117.45.109:20006")
+api_key = os.getenv("RAGFLOW_API_KEY", "r")
+base_url = os.getenv("RAGFLOW_BASE_URL", "")
+
 headers = {
     "Authorization": f"Bearer {api_key}"
 }
@@ -154,25 +156,25 @@ async def update_dataset_http(
 
 
 
-async def ragflow_chat_completion(query):
-    from openai import OpenAI
-    model = "model"
-    client = OpenAI(api_key="ragflow-k4OThiYTgwNjdkNTExZjA5OTBiODIyYT",
-                    base_url=f"http://47.117.45.109:20006/api/v1/chats_openai/be0d226a63a211f0a894822a712eb46f")
-    logger.info(f"ragflow_chat_completion {query}")
-    completion = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": f"{query}"},
-        ],
-        stream=True
-    )
-
-    stream = True
-    if stream:
-        for chunk in completion:
-            print(chunk)
-            yield chunk
-    else:
-        yield  completion.choices[0].message.content
+# async def ragflow_chat_completion(query):
+#     from openai import OpenAI
+#     model = "model"
+#     client = OpenAI(api_key="ragflow-k4OThiYTgwNjdkNTExZjA5OTBiODIyYT",
+#                     base_url=f"http://47.117.45.109:20006/api/v1/chats_openai/be0d226a63a211f0a894822a712eb46f")
+#     logger.info(f"ragflow_chat_completion {query}")
+#     completion = client.chat.completions.create(
+#         model=model,
+#         messages=[
+#             {"role": "system", "content": "You are a helpful assistant."},
+#             {"role": "user", "content": f"{query}"},
+#         ],
+#         stream=True
+#     )
+#
+#     stream = True
+#     if stream:
+#         for chunk in completion:
+#             print(chunk)
+#             yield chunk
+#     else:
+#         yield  completion.choices[0].message.content
