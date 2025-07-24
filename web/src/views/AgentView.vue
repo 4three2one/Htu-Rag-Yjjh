@@ -2,11 +2,11 @@
   <div class="agent-view">
     <div class="agent-view-header">
       <div class="header-left">
-        <div class="header-item">
+<!--        <div class="header-item">
           <a-button class="header-button" @click="toggleConf">
             <template #icon><SettingOutlined /></template>
           </a-button>
-        </div>
+        </div>-->
         <div class="header-item">
           <a-select
             v-model:value="selectedAgentId"
@@ -20,7 +20,7 @@
               :value="name"
             >
               <div class="agent-option">
-                智能体：{{ agent.name }}
+                {{ agent.name }}
                 <StarFilled v-if="name === defaultAgentId" class="default-icon" />
               </div>
             </a-select-option>

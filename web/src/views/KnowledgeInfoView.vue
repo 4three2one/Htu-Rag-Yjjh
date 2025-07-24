@@ -767,10 +767,10 @@ const runStatusMap = {
 
 const columns = [
   { title: '文件名称', dataIndex: 'filename', key: 'filename', ellipsis: true, width: 180 },
-  { title: '创建时间', dataIndex: 'create_time', key: 'create_time', width: 150 },
-  { title: '分块数', dataIndex: 'chunk_count', key: 'chunk_count', width: 80 },
+  { title: '创建时间', dataIndex: 'create_time', key: 'create_time', width: 100 },
+/*  { title: '分块数', dataIndex: 'chunk_count', key: 'chunk_count', width: 80 },
   { title: '切片方法', dataIndex: 'chunk_method', key: 'chunk_method', width: 100 },
-  { title: '启用', dataIndex: 'status', key: 'status', width: 80 },
+  { title: '启用', dataIndex: 'status', key: 'status', width: 80 },*/
   { title: '状态', dataIndex: 'run', key: 'run', width: 100 },
   { title: '操作', key: 'action', dataIndex: 'file_id', width: 150 }
 ];
