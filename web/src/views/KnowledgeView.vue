@@ -67,9 +67,9 @@
               <span class="meta-left">
                 {{ (knowledge.content_count ?? 0) + ' 文档' }}
               </span>
-              <span class="meta-embed">
+              <!-- <span class="meta-embed">
                 <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
-              </span>
+              </span> -->
             </div>
           </div>
         </div>
