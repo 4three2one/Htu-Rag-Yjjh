@@ -158,6 +158,7 @@ async def update_dataset_http(
 
 async def ragflow_chat_completion_openai(query):
     from openai import OpenAI
+    import asyncio
     model = "model"
     client = OpenAI(api_key="ragflow-k4OThiYTgwNjdkNTExZjA5OTBiODIyYT",
                     base_url=f"http://47.117.45.109:20006/api/v1/chats_openai/be0d226a63a211f0a894822a712eb46f")
@@ -171,13 +172,9 @@ async def ragflow_chat_completion_openai(query):
         stream=True
     )
 
-    stream = True
-    if stream:
-        for chunk in completion:
-            print(chunk)
-            yield chunk
-    else:
-        yield completion.choices[0].message.content
+    for chunk in completion:
+        print(chunk)
+        yield chunk
 
 
 def ragflow_chat_completion_origin(question, session_id="518834ec684b11f0bb25822a712eb46f", chat_id="be0d226a63a211f0a894822a712eb46f",
