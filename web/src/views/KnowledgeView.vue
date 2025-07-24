@@ -157,7 +157,7 @@ const loadKnowledgeItems = async () => {
     console.log('API返回数据:', data)
     console.log('knowledge_items:', data.knowledge_items)
     // 过滤掉名称为“引江济淮知识库”的项，并将包含“其他”的项排到最后
-    const filtered = (data.knowledge_items || []).filter(item => item.name !== '引江济淮知识库')
+    const filtered = (data.knowledge_items || []).filter(item => item.name !== 'test')
     const others = filtered.filter(item => item.name.includes('其他'))
     const normal = filtered.filter(item => !item.name.includes('其他'))
     knowledgeItems.value = [...normal, ...others]
