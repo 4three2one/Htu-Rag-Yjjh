@@ -23,47 +23,7 @@ from server.models.user_model import User
 from server.models.thread_model import Thread
 
 from server.third.ragflow_http_api import ragflow_chat_completion_openai
-
-RAGFLOW_HISTORY_DB = os.path.join("saves", "agents", "ragflow", "aio_history.db")
-os.makedirs(os.path.dirname(RAGFLOW_HISTORY_DB), exist_ok=True)
-
-
-async def save_ragflow_history(thread_id, user_id, agent_id, user_msg, ai_msg):
-    async with aiosqlite.connect(RAGFLOW_HISTORY_DB) as db:
-        await db.execute(
-            """CREATE TABLE IF NOT EXISTS history
-               (
-                   id
-                   INTEGER
-                   PRIMARY
-                   KEY
-                   AUTOINCREMENT,
-                   thread_id
-                   TEXT,
-                   user_id
-                   TEXT,
-                   agent_id
-                   TEXT,
-                   role
-                   TEXT,
-                   content
-                   TEXT,
-                   create_at
-                   TIMESTAMP
-                   DEFAULT
-                   CURRENT_TIMESTAMP
-               )"""
-        )
-        await db.execute(
-            "INSERT INTO history (thread_id, user_id, agent_id, role, content) VALUES (?, ?, ?, ?, ?)",
-            (thread_id, user_id, agent_id, "user", user_msg)
-        )
-        await db.execute(
-            "INSERT INTO history (thread_id, user_id, agent_id, role, content) VALUES (?, ?, ?, ?, ?)",
-            (thread_id, user_id, agent_id, "assistant", ai_msg)
-        )
-        await db.commit()
-
+from server.third.utils import make_chunk, RAGFLOW_HISTORY_DB
 
 chat = APIRouter(prefix="/chat")
 
@@ -145,8 +105,8 @@ async def chat_agent(agent_name: str,
                      config: dict = Body({}),
                      meta: dict = Body({}),
                      current_user: User = Depends(get_required_user)):
-    """使用特定智能体进行对话（需要登录）"""
     logger.info(f"starting chat with: {agent_name}")
+
     meta.update({
         "query": query,
         "agent_name": agent_name,
@@ -158,13 +118,6 @@ async def chat_agent(agent_name: str,
     from src.agents.utils import load_chat_model
     from langchain_core.messages import HumanMessage
     import json
-
-    def make_chunk(content=None, **kwargs):
-        return json.dumps({
-            "request_id": meta.get("request_id"),
-            "response": content,
-            **kwargs
-        }, ensure_ascii=False).encode('utf-8') + b"\n"
 
     # 新增分支：ragflow 直接用ChatOpenAI
     # if agent_name == "ragflow":
@@ -295,10 +248,10 @@ async def chat_agent(agent_name: str,
 
 @chat.post("/agent_origin/{agent_name}")
 async def chat_agent_origin(agent_name: str,
-                     query: str = Body(...),
-                     config: dict = Body({}),
-                     meta: dict = Body({}),
-                     current_user: User = Depends(get_required_user)):
+                            query: str = Body(...),
+                            config: dict = Body({}),
+                            meta: dict = Body({}),
+                            current_user: User = Depends(get_required_user)):
     """使用特定智能体进行对话（需要登录）"""
 
     meta.update({
