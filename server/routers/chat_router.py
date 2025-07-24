@@ -205,13 +205,13 @@ async def chat_agent(agent_name: str,
                     }
                     yield make_chunk(content=content, msg=msg, status="loading")
 
-            # await save_ragflow_history(
-            #     thread_id=thread_id,
-            #     user_id=current_user.id,
-            #     agent_id=agent_name,
-            #     user_msg=query,
-            #     ai_msg=ai_content
-            # )
+            await save_ragflow_history(
+                thread_id=thread_id,
+                user_id=current_user.id,
+                agent_id=agent_name,
+                user_msg=query,
+                ai_msg=ai_content
+            )
 
             yield make_chunk(status="finished", meta=meta)
         except Exception as e:
