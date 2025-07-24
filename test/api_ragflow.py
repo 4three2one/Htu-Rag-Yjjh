@@ -60,8 +60,8 @@ def chat_completion(question, session_id, stream=True):
 # 示例使用
 if __name__ == "__main__":
     # 示例参数
-    question = "Who are you"
-    session_id = ""
+    question = "合肥监管处在哪里"
+    session_id = "e52668aa684011f085b2822a712eb46f"
 
     # 流式响应示例
     print("流式响应结果:")

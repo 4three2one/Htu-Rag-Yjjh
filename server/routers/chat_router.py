@@ -22,7 +22,7 @@ from server.utils.auth_middleware import get_required_user, get_db
 from server.models.user_model import User
 from server.models.thread_model import Thread
 
-from server.third.ragflow_http_api import ragflow_chat_completion
+from server.third.ragflow_http_api import ragflow_chat_completion_openai
 
 RAGFLOW_HISTORY_DB = os.path.join("saves", "agents", "ragflow", "aio_history.db")
 os.makedirs(os.path.dirname(RAGFLOW_HISTORY_DB), exist_ok=True)
@@ -189,7 +189,7 @@ async def chat_agent(agent_name: str,
             yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
 
             ai_content = ""
-            async for chunk in ragflow_chat_completion(query):
+            async for chunk in ragflow_chat_completion_openai(query):
                 # 提取内容
                 content = None
                 if hasattr(chunk, "choices") and chunk.choices:
@@ -205,13 +205,13 @@ async def chat_agent(agent_name: str,
                     }
                     yield make_chunk(content=content, msg=msg, status="loading")
 
-            await save_ragflow_history(
-                thread_id=thread_id,
-                user_id=current_user.id,
-                agent_id=agent_name,
-                user_msg=query,
-                ai_msg=ai_content
-            )
+            # await save_ragflow_history(
+            #     thread_id=thread_id,
+            #     user_id=current_user.id,
+            #     agent_id=agent_name,
+            #     user_msg=query,
+            #     ai_msg=ai_content
+            # )
 
             yield make_chunk(status="finished", meta=meta)
         except Exception as e:
