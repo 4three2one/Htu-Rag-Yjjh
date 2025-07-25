@@ -174,23 +174,13 @@ async def chat_agent(agent_name: str,
                 }
 
             print(f"{content=}, {msg_data=}")
-            # 如果找到了内容，发送流式数据
-            if content and content.strip():
-                yield make_chunk(
-                    content=content,
-                    request_id=request_id,
-                    msg=msg_data,
-                    metadata=meta,
-                    status="loading"
-                )
-            # 如果没有内容但有其他数据，也发送（可能是工具调用等）
-            elif msg_data:
-                yield make_chunk(
-                    msg=msg_data,
-                    request_id=request_id,
-                    metadata=meta,
-                    status="loading"
-                )
+            yield make_chunk(
+                content=content,
+                request_id=request_id,
+                msg=msg_data,
+                metadata=meta,
+                status="loading"
+            )
 
     # return EventSourceResponse(stream_messages())
     return StreamingResponse(stream_messages(), media_type='application/json')
