@@ -240,7 +240,7 @@ async def ragflow_create_session_with_chat_assistant(
     data = {
         "name": name
     }
-    url = f"{base_url}/api/v1/chats/{chat_id}/completions"
+    url = f"{base_url}/api/v1/chats/{chat_id}/sessions"
     response = requests.post(url, headers=headers, json=data)
     response.raise_for_status()  # 如果请求失败会抛出异常
     return response.json()
