@@ -25,7 +25,7 @@ from server.models.user_model import User
 from server.models.thread_model import Thread
 
 from server.third.ragflow_http_api import ragflow_chat_completion_origin
-from server.third.utils import make_chunk, RAGFLOW_HISTORY_DB
+from server.third.utils import make_chunk, RAGFLOW_HISTORY_DB,save_ragflow_history
 
 chat = APIRouter(prefix="/chat")
 
@@ -130,6 +130,7 @@ async def chat_agent(agent_name: str,
 
         # 正确处理流式数据
         last_content = ""
+        ai_content = ""
 
         async for message in ragflow_chat_completion_origin(query):
             logger.debug(f"收到RAGFlow消息: {message}")
@@ -146,6 +147,13 @@ async def chat_agent(agent_name: str,
             message = message["data"]
 
             if type(message) is bool:
+                await save_ragflow_history(
+                    thread_id=config["thread_id"],
+                    user_id=current_user.id,
+                    agent_id=agent_name,
+                    user_msg=query,
+                    ai_msg=ai_content
+                )
                 yield make_chunk(status="finished",request_id=request_id, meta=meta)
                 continue
 
@@ -165,6 +173,7 @@ async def chat_agent(agent_name: str,
             elif "answer" in message:
                 content = message["answer"]
                 delta = content[len(last_content):]
+                ai_content += delta
                 last_content = content
                 msg_data = {
                     "content": delta,
