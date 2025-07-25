@@ -13,6 +13,7 @@ base_url = os.getenv("RAGFLOW_BASE_URL", "")
 headers = {
     "Authorization": f"Bearer {api_key}"
 }
+chat_id: str = "be0d226a63a211f0a894822a712eb46f"
 
 
 async def list_documents_http(
@@ -162,7 +163,7 @@ async def ragflow_chat_completion_openai(query):
     import asyncio
     model = "model"
     client = OpenAI(api_key="ragflow-k4OThiYTgwNjdkNTExZjA5OTBiODIyYT",
-                    base_url=f"http://47.117.45.109:20006/api/v1/chats_openai/be0d226a63a211f0a894822a712eb46f")
+                    base_url=f"http://47.117.45.109:20006/api/v1/chats_openai/{chat_id}")
     logger.info(f"ragflow_chat_completion_openai , {query}")
     completion = client.chat.completions.create(
         model=model,
@@ -181,8 +182,7 @@ async def ragflow_chat_completion_openai(query):
 # 异步原生 API 版本
 async def ragflow_chat_completion_origin(
         question: str,
-        session_id: str = "518834ec684b11f0bb25822a712eb46f",
-        chat_id: str = "be0d226a63a211f0a894822a712eb46f",
+        session_id: str = None,
         stream: bool = True
 ) -> AsyncGenerator:
     """异步调用原生 RAGFlow API"""
@@ -228,3 +228,19 @@ async def ragflow_chat_completion_origin(
             yield {"error": f"HTTP 错误: {e.response.status_code}"}
         except Exception as e:
             yield {"error": f"请求失败: {str(e)}"}
+
+
+
+async def ragflow_create_session_with_chat_assistant(
+        name: str = "新会话",
+):
+    """
+    RAGFlow API 创建会话
+    """
+    data = {
+        "name": name
+    }
+    url = f"{base_url}/api/v1/chats/{chat_id}/completions"
+    response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()  # 如果请求失败会抛出异常
+    return response.json()

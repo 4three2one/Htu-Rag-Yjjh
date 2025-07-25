@@ -531,6 +531,8 @@ async def create_thread(
         description=thread.description,
     )
 
+    """关联ragflow"""
+
     db.add(new_thread)
     db.commit()
     db.refresh(new_thread)
