@@ -263,9 +263,15 @@ const onGoingConv = reactive({
     const msgs = Object.values(onGoingConv.msgChunks).map(msgs => {
       return mergeMessageChunk(msgs)
     })
-    return msgs.length > 0
+    const result = msgs.length > 0
       ? convertToolResultToMessages(msgs).filter(msg => msg.type !== 'tool')
       : []
+    console.log("onGoingConv.messages 计算:", { 
+      msgChunksCount: Object.keys(onGoingConv.msgChunks).length,
+      mergedMsgsCount: msgs.length,
+      finalResultCount: result.length 
+    }); // 调试日志
+    return result
   })
 })
 const lastConv = computed(() => convs.value[convs.value.length - 1]);
@@ -964,6 +970,7 @@ const handleStreamResponseError = (error) => {
 
 // 处理流数据
 const processResponseChunk = async (data) => {
+  console.log("收到流数据:", data); // 添加调试日志
   // console.log("处理流数据:", data.msg);
   // if (data.msg.additional_kwargs?.tool_calls) {
   //   console.log("tool_calls", data.msg.additional_kwargs.tool_calls);
@@ -975,11 +982,17 @@ const processResponseChunk = async (data) => {
     onGoingConv.msgChunks[data.request_id] = [data.msg];
 
   } else if (data.status === 'loading') {
-    if (data.msg.id) {
-      if (!onGoingConv.msgChunks[data.msg.id]) {
-        onGoingConv.msgChunks[data.msg.id] = []
+    // 修复：使用 request_id 作为 key，确保数据能正确存储
+    const chunkKey = data.msg.id || data.request_id;
+    console.log("分片key:", chunkKey, "msg.id:", data.msg.id, "request_id:", data.request_id); // 调试日志
+    if (chunkKey) {
+      if (!onGoingConv.msgChunks[chunkKey]) {
+        onGoingConv.msgChunks[chunkKey] = []
       }
-      onGoingConv.msgChunks[data.msg.id].push(data.msg)
+      onGoingConv.msgChunks[chunkKey].push(data.msg)
+      console.log("已存储分片，当前分片数:", onGoingConv.msgChunks[chunkKey].length); // 调试日志
+    } else {
+      console.warn("无法确定分片key，跳过此分片:", data);
     }
   } else if (data.status === 'error') {
     console.error("流式处理出错:", data.message);
