@@ -8,11 +8,17 @@ RAGFLOW_HISTORY_DB = os.path.join("saves", "agents", "ragflow", "aio_history.db"
 os.makedirs(os.path.dirname(RAGFLOW_HISTORY_DB), exist_ok=True)
 
 def make_chunk(content=None, request_id=None, **kwargs):
-    return json.dumps({
+    chunk_data = {
         "request_id": request_id,
-        "response": content,
         **kwargs
-    }, ensure_ascii=False) + "\n"
+    }
+    
+    # 同时支持response和content字段
+    if content is not None:
+        chunk_data["response"] = content
+        chunk_data["content"] = content
+    
+    return json.dumps(chunk_data, ensure_ascii=False) + "\n"
 
 
 

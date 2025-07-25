@@ -6,6 +6,8 @@ import uuid
 import time
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
+from sse_starlette.sse import EventSourceResponse
+
 from langchain_core.messages import AIMessageChunk, HumanMessage
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -114,11 +116,10 @@ async def chat_agent(agent_name: str,
         "thread_id": config.get("thread_id"),
         "user_id": current_user.id
     })
+    request_id = meta.get("request_id")
 
     async def stream_messages():
-        yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
-
-        # messages = [{"role": "user", "content": query}]
+        yield make_chunk(status="init",request_id=request_id, meta=meta, msg=HumanMessage(content=query).model_dump())
 
         config["user_id"] = current_user.id
         if "thread_id" not in config or not config["thread_id"]:
@@ -127,16 +128,83 @@ async def chat_agent(agent_name: str,
 
         runnable_config = {"configurable": {**config}}
 
+        # 正确处理流式数据
         async for message in ragflow_chat_completion_origin(query):
-            print("msg: ",message)
-            time.sleep(0.5)
-            yield make_chunk(msg="111",
-                             metadata=meta,
-                             status="loading")
-        yield make_chunk(status="finished", meta=meta)
+            logger.debug(f"收到RAGFlow消息: {message}")
 
+            # 检查是否有错误
+            if "error" in message:
+                yield make_chunk(status="error",request_id=request_id, message=message["error"], meta=meta)
+                return
+
+            # 解析RAGFlow返回的数据 - 支持多种格式
+            content = None
+            msg_data = None
+
+            message = message["data"]
+
+            if type(message) is bool:
+                yield make_chunk(status="finished",request_id=request_id, meta=meta)
+                continue
+
+            # 格式1: OpenAI兼容格式
+            if "choices" in message and len(message["choices"]) > 0:
+                choice = message["choices"][0]
+                if "delta" in choice and "content" in choice["delta"]:
+                    content = choice["delta"]["content"]
+                    msg_data = {
+                        "content": content,
+                        "id": request_id,
+                        "role": "assistant",
+                        "type": "ai"
+                    }
+
+            # 格式2: 直接包含content的格式
+            elif "content" in message:
+                content = message["content"]
+                msg_data = message
+
+            # 格式3: 包含answer字段的格式
+            elif "answer" in message:
+                content = message["answer"]
+                msg_data = {
+                    "content": content,
+                    "id": request_id,
+                    "role": "assistant",
+                    "type": "ai"
+                }
+
+            # 格式4: 包含text字段的格式
+            elif "text" in message:
+                content = message["text"]
+                msg_data = {
+                    "content": content,
+                    "id": request_id,
+                    "role": "assistant",
+                    "type": "ai"
+                }
+
+            print(f"{content=}, {msg_data=}")
+            # 如果找到了内容，发送流式数据
+            if content and content.strip():
+                yield make_chunk(
+                    content=content,
+                    request_id=request_id,
+                    msg=msg_data,
+                    metadata=meta,
+                    status="loading"
+                )
+            # 如果没有内容但有其他数据，也发送（可能是工具调用等）
+            elif msg_data:
+                yield make_chunk(
+                    msg=msg_data,
+                    request_id=request_id,
+                    metadata=meta,
+                    status="loading"
+                )
+
+    # return EventSourceResponse(stream_messages())
     return StreamingResponse(stream_messages(), media_type='application/json')
-
 
     # 新增分支：ragflow 直接用ChatOpenAI
     # if agent_name == "ragflow":
