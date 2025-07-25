@@ -551,6 +551,8 @@ async def create_thread(
         "description": new_thread.description,
         "create_at": new_thread.create_at.isoformat(),
         "update_at": new_thread.update_at.isoformat(),
+        "chat_id": new_thread.update_at.isoformat(),
+        "session_id": new_thread.update_at.isoformat(),
     }
 
 
