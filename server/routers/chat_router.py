@@ -120,6 +120,7 @@ async def chat_agent(agent_name: str,
     })
     request_id = meta.get("request_id")
     thread_id = config.get("thread_id")
+    delay = 0.01
 
     # 根据 thread_id 获取session_id，没有创建新的 session_id
     session_id = None
@@ -177,7 +178,7 @@ async def chat_agent(agent_name: str,
                         "type": "ai"
                     }
 
-            # 格式2
+            # ragflow格式
             elif "answer" in message:
                 content = message["answer"]
                 delta = content[len(last_content):]
@@ -190,7 +191,19 @@ async def chat_agent(agent_name: str,
                     "type": "ai"
                 }
 
+                # 增加延迟
+                length = len(delta)
+                if length > 100:
+                    delay = 0.1
+                elif length > 50:
+                    delay = 0.2
+                elif length > 20:
+                    delay = 0.5
+                else:
+                    delay = 0.7
+
             print(f"{content=}, {msg_data=}")
+            time.sleep(delay)
             yield make_chunk(
                 content=content,
                 request_id=request_id,
