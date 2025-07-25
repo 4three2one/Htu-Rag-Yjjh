@@ -22,7 +22,7 @@ from server.utils.auth_middleware import get_required_user, get_db
 from server.models.user_model import User
 from server.models.thread_model import Thread
 
-from server.third.ragflow_http_api import ragflow_chat_completion_openai
+from server.third.ragflow_http_api import ragflow_chat_completion_origin
 from server.third.utils import make_chunk, RAGFLOW_HISTORY_DB
 
 chat = APIRouter(prefix="/chat")
@@ -115,9 +115,27 @@ async def chat_agent(agent_name: str,
         "user_id": current_user.id
     })
 
-    from src.agents.utils import load_chat_model
-    from langchain_core.messages import HumanMessage
-    import json
+    async def stream_messages():
+        yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
+
+        # messages = [{"role": "user", "content": query}]
+
+        config["user_id"] = current_user.id
+        if "thread_id" not in config or not config["thread_id"]:
+            config["thread_id"] = str(uuid.uuid4())
+            logger.debug(f"没有thread_id，生成一个: {config['thread_id']=}")
+
+        runnable_config = {"configurable": {**config}}
+
+        for message in ragflow_chat_completion_origin(query):
+            print(message)
+            yield make_chunk(msg="111",
+                             metadata=meta,
+                             status="loading")
+        yield make_chunk(status="finished", meta=meta)
+
+    return StreamingResponse(stream_messages(), media_type='application/json')
+
 
     # 新增分支：ragflow 直接用ChatOpenAI
     # if agent_name == "ragflow":

@@ -12,7 +12,7 @@ def make_chunk(content=None, request_id=None, **kwargs):
         "request_id": request_id,
         "response": content,
         **kwargs
-    }, ensure_ascii=False).encode('utf-8') + b"\n"
+    }, ensure_ascii=False) + "\n"
 
 
 
