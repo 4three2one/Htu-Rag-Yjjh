@@ -121,7 +121,19 @@ async def chat_agent(agent_name: str,
     request_id = meta.get("request_id")
     thread_id = config.get("thread_id")
 
-    # 根据 thread_id 获取session_id
+    # 根据 thread_id 获取session_id，没有创建新的 session_id
+    session_id = None
+    chat_id = None
+    ragflow_obj = db_manager.get_ragflow_by_thread_id(thread_id) if thread_id else None
+    if ragflow_obj:
+        session_id = ragflow_obj.session_id
+        chat_id = ragflow_obj.chat_id
+    elif thread_id:
+        # 没有找到，自动创建
+        ragflow_resp = await ragflow_create_session_with_chat_assistant("新对话")
+        chat_id = ragflow_resp['data']['chat_id']
+        session_id = ragflow_resp['data']['id']
+        db_manager.add_ragflow(thread_id=thread_id, chat_id=chat_id, session_id=session_id)
 
     async def stream_messages():
         yield make_chunk(status="init",request_id=request_id, meta=meta, msg=HumanMessage(content=query).model_dump())
@@ -129,7 +141,7 @@ async def chat_agent(agent_name: str,
         last_content = ""
         ai_content = ""
 
-        async for message in ragflow_chat_completion_origin(query):
+        async for message in ragflow_chat_completion_origin(query,session_id=session_id):
             logger.debug(f"收到RAGFlow消息: {message}")
 
             # 检查是否有错误
