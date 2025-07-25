@@ -119,17 +119,12 @@ async def chat_agent(agent_name: str,
         "user_id": current_user.id
     })
     request_id = meta.get("request_id")
+    thread_id = config.get("thread_id")
+
+    # 根据 thread_id 获取session_id
 
     async def stream_messages():
         yield make_chunk(status="init",request_id=request_id, meta=meta, msg=HumanMessage(content=query).model_dump())
-
-        config["user_id"] = current_user.id
-        if "thread_id" not in config or not config["thread_id"]:
-            config["thread_id"] = str(uuid.uuid4())
-            logger.debug(f"没有thread_id，生成一个: {config['thread_id']=}")
-
-        runnable_config = {"configurable": {**config}}
-
         # 正确处理流式数据
         last_content = ""
         ai_content = ""
