@@ -129,6 +129,8 @@ async def chat_agent(agent_name: str,
         runnable_config = {"configurable": {**config}}
 
         # 正确处理流式数据
+        last_content = ""
+
         async for message in ragflow_chat_completion_origin(query):
             logger.debug(f"收到RAGFlow消息: {message}")
 
@@ -159,26 +161,13 @@ async def chat_agent(agent_name: str,
                         "type": "ai"
                     }
 
-            # 格式2: 直接包含content的格式
-            elif "content" in message:
-                content = message["content"]
-                msg_data = message
-
-            # 格式3: 包含answer字段的格式
+            # 格式2
             elif "answer" in message:
                 content = message["answer"]
+                delta = content[len(last_content):]
+                last_content = content
                 msg_data = {
-                    "content": content,
-                    "id": request_id,
-                    "role": "assistant",
-                    "type": "ai"
-                }
-
-            # 格式4: 包含text字段的格式
-            elif "text" in message:
-                content = message["text"]
-                msg_data = {
-                    "content": content,
+                    "content": delta,
                     "id": request_id,
                     "role": "assistant",
                     "type": "ai"
