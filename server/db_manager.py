@@ -10,6 +10,7 @@ from server.models.user_model import User
 from server.models.thread_model import Thread
 from server.models.kb_models import KnowledgeDatabase, KnowledgeFile, KnowledgeNode, KnowledgeHierarchy
 from src.utils import logger
+from server.models.ragflow_model import RagflowModel
 
 class DBManager:
     """数据库管理器 - 只提供基础的数据库连接和会话管理"""
@@ -97,6 +98,50 @@ class DBManager:
         with self.get_session_context() as session:
             results = session.query(KnowledgeHierarchy).all()
             return [result.to_dict() for result in results]  # 返回字典列表
+
+    def add_ragflow(self, thread_id, chat_id=None, session_id=None):
+        """新增 ragflow 记录"""
+        with self.get_session_context() as session:
+            ragflow = RagflowModel(thread_id=thread_id, chat_id=chat_id, session_id=session_id)
+            session.add(ragflow)
+            session.commit()
+            return ragflow
+
+    def get_ragflow_by_id(self, ragflow_id):
+        """通过 id 获取 ragflow 记录"""
+        with self.get_session_context() as session:
+            ragflow = session.query(RagflowModel).filter_by(id=ragflow_id).first()
+            return ragflow
+
+    def get_ragflow_by_thread_id(self, thread_id):
+        """通过 thread_id 获取 ragflow 记录"""
+        with self.get_session_context() as session:
+            ragflow = session.query(RagflowModel).filter_by(thread_id=thread_id).first()
+            return ragflow
+
+    def update_ragflow(self, ragflow_id, **kwargs):
+        """更新 ragflow 记录"""
+        with self.get_session_context() as session:
+            ragflow = session.query(RagflowModel).filter_by(id=ragflow_id).first()
+            if not ragflow:
+                return None
+            for key, value in kwargs.items():
+                if hasattr(ragflow, key):
+                    setattr(ragflow, key, value)
+            session.commit()
+            return ragflow
+
+    def delete_ragflow_by_id(self, ragflow_id):
+        """通过 id 删除 ragflow 记录"""
+        with self.get_session_context() as session:
+            session.query(RagflowModel).filter_by(id=ragflow_id).delete()
+            session.commit()
+
+    def get_all_ragflow(self):
+        """获取所有 ragflow 记录"""
+        with self.get_session_context() as session:
+            ragflows = session.query(RagflowModel).all()
+            return ragflows
 
 # 创建全局数据库管理器实例
 db_manager = DBManager()
