@@ -127,8 +127,9 @@ async def chat_agent(agent_name: str,
 
         runnable_config = {"configurable": {**config}}
 
-        for message in ragflow_chat_completion_origin(query):
-            print(message)
+        async for message in ragflow_chat_completion_origin(query):
+            print("msg: ",message)
+            time.sleep(0.5)
             yield make_chunk(msg="111",
                              metadata=meta,
                              status="loading")

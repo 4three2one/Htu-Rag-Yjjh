@@ -4,6 +4,7 @@ import os
 from src.utils import logger
 import requests
 import json
+from typing import AsyncGenerator
 
 # 配置 ragflow HTTP API 基础地址和 API KEY
 api_key = os.getenv("RAGFLOW_API_KEY", "r")
@@ -177,53 +178,53 @@ async def ragflow_chat_completion_openai(query):
         yield chunk
 
 
-def ragflow_chat_completion_origin(question, session_id="518834ec684b11f0bb25822a712eb46f", chat_id="be0d226a63a211f0a894822a712eb46f",
-                                   stream=True):
-
+# 异步原生 API 版本
+async def ragflow_chat_completion_origin(
+        question: str,
+        session_id: str = "518834ec684b11f0bb25822a712eb46f",
+        chat_id: str = "be0d226a63a211f0a894822a712eb46f",
+        stream: bool = True
+) -> AsyncGenerator:
+    """异步调用原生 RAGFlow API"""
     payload = {
         "question": question,
         "stream": stream,
         "session_id": session_id
     }
 
-    try:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
-        }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"  # 请确保 api_key 已定义
+    }
 
-        response = requests.post(
-            f"{base_url}/api/v1/chats/{chat_id}/completions",
-            headers=headers,
-            json=payload,
-            stream=stream
-        )
-        response.raise_for_status()
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.post(
+                f"{base_url}/api/v1/chats/{chat_id}/completions",
+                headers=headers,
+                json=payload
+            )
+            response.raise_for_status()
 
-        if stream:
-            # 处理流式响应
-            def generate():
-                for line in response.iter_lines():
-                    line = line.decode('utf-8')
+            if stream:
+                async for line in response.aiter_lines():
+                    line = line.strip()
+                    if not line:
+                        continue
+
+                    # 处理可能的 SSE 格式 (data: {...}) 或纯 JSON
                     if line.startswith("data:"):
-                        data = line[5:]
-                        try:
-                            chunk_data = json.loads(data)
-                            yield chunk_data
-                        except json.JSONDecodeError:
-                            continue
-                    elif line.strip():
-                        try:
-                            chunk_data = json.loads(line.strip())
-                            yield chunk_data
-                        except json.JSONDecodeError:
-                            continue
+                        line = line[5:].strip()
 
-            return generate()
-        else:
-            # 处理非流式响应
-            return response.json()
+                    try:
+                        chunk = json.loads(line)
+                        yield chunk
+                    except json.JSONDecodeError:
+                        continue
+            else:
+                yield response.json()
 
-    except requests.exceptions.RequestException as e:
-        print(f"请求RAGFlow API时出错: {e}")
-        return None
+        except httpx.HTTPStatusError as e:
+            yield {"error": f"HTTP 错误: {e.response.status_code}"}
+        except Exception as e:
+            yield {"error": f"请求失败: {str(e)}"}
