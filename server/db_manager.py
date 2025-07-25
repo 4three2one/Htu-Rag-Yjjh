@@ -108,16 +108,34 @@ class DBManager:
             return ragflow
 
     def get_ragflow_by_id(self, ragflow_id):
-        """通过 id 获取 ragflow 记录"""
+        """通过 id 获取 ragflow 记录，返回 dict"""
         with self.get_session_context() as session:
             ragflow = session.query(RagflowModel).filter_by(id=ragflow_id).first()
-            return ragflow
+            if ragflow:
+                return {
+                    "id": ragflow.id,
+                    "thread_id": ragflow.thread_id,
+                    "chat_id": ragflow.chat_id,
+                    "session_id": ragflow.session_id,
+                    "create_at": ragflow.create_at,
+                    "update_at": ragflow.update_at,
+                }
+            return None
 
     def get_ragflow_by_thread_id(self, thread_id):
-        """通过 thread_id 获取 ragflow 记录"""
+        """通过 thread_id 获取 ragflow 记录，返回 dict"""
         with self.get_session_context() as session:
             ragflow = session.query(RagflowModel).filter_by(thread_id=thread_id).first()
-            return ragflow
+            if ragflow:
+                return {
+                    "id": ragflow.id,
+                    "thread_id": ragflow.thread_id,
+                    "chat_id": ragflow.chat_id,
+                    "session_id": ragflow.session_id,
+                    "create_at": ragflow.create_at,
+                    "update_at": ragflow.update_at,
+                }
+            return None
 
     def update_ragflow(self, ragflow_id, **kwargs):
         """更新 ragflow 记录"""

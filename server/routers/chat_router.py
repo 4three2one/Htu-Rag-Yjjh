@@ -126,8 +126,7 @@ async def chat_agent(agent_name: str,
     chat_id = None
     ragflow_obj = db_manager.get_ragflow_by_thread_id(thread_id) if thread_id else None
     if ragflow_obj:
-        session_id = ragflow_obj.session_id
-        chat_id = ragflow_obj.chat_id
+        session_id = ragflow_obj["session_id"]
     elif thread_id:
         # 没有找到，自动创建
         ragflow_resp = await ragflow_create_session_with_chat_assistant("新对话")
