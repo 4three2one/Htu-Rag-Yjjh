@@ -157,7 +157,7 @@ import { message } from 'ant-design-vue';
 import { chatApi } from '@/apis/auth_api';
 import { authApi, healthApi } from '@/apis/public_api';
 import { UserOutlined, LockOutlined, WechatOutlined, QrcodeOutlined, ThunderboltOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue';
-import loginBg from '@/assets/pics/login_bg.jpg';
+import loginBg from '/background.png';
 
 const router = useRouter();
 const userStore = useUserStore();
