@@ -140,6 +140,7 @@ async def chat_agent(agent_name: str,
         # 正确处理流式数据
         last_content = ""
         ai_content = ""
+        ragflow_data = None
 
         async for message in ragflow_chat_completion_origin(query,session_id=session_id):
             logger.debug(f"收到RAGFlow消息: {message}")
@@ -163,7 +164,7 @@ async def chat_agent(agent_name: str,
                     user_msg=query,
                     ai_msg=ai_content
                 )
-                yield make_chunk(status="finished",request_id=request_id, meta=meta)
+                yield make_chunk(status="finished",request_id=request_id, meta=meta,ragflow_data=ragflow_data)
                 continue
 
             # 格式1: OpenAI兼容格式
@@ -184,11 +185,12 @@ async def chat_agent(agent_name: str,
                 delta = content[len(last_content):]
                 ai_content += delta
                 last_content = content
+                ragflow_data=message
                 msg_data = {
                     "content": delta,
                     "id": request_id,
                     "role": "assistant",
-                    "type": "ai"
+                    "type": "ai",
                 }
 
                 # 增加延迟
@@ -209,6 +211,7 @@ async def chat_agent(agent_name: str,
                 request_id=request_id,
                 msg=msg_data,
                 metadata=meta,
+                ragflow_data=ragflow_data,
                 status="loading"
             )
 
