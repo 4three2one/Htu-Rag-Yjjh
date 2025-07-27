@@ -123,7 +123,10 @@ const mainList = [{
           <span class="logo-text">{{ infoStore.organization.short_name }}</span>
         </router-link>
       </div>
-      <div class="nav">
+      <div class="tool-bar-text">
+        江淮运河将军岭段-安全生产标准化知识库
+      </div>
+      <div class="nav" >
         <!-- 使用mainList渲染导航项 -->
         <RouterLink
           v-for="(item, index) in mainList"
@@ -218,7 +221,7 @@ const mainList = [{
 @import '@/assets/css/main.css';
 
 :root {
-  --header-width: 60px;
+  --header-width: 120px;  // 从80px增加到120px
 }
 
 .app-layout {
@@ -304,6 +307,21 @@ div.header, #app-router-view {
       font-weight: bold;
       color: #333;
     }
+  }
+
+  .tool-bar-text {
+    color: white;
+    font-weight: bold;
+    font-size: 16px;  // 从11px增大到13px
+    white-space: nowrap;  // 强制一行显示
+    text-align: left;  // 改为靠左对齐
+    margin: 8px 0;
+    padding: 0 8px;   // 增加左边距
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    width: 100%;      // 占满容器宽度
+    max-width: 100%;
   }
 
   .nav-item {
