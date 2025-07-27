@@ -16,10 +16,10 @@
     </div>
 
     <div class="login-container">
-      <div class="login-logo">
-        <!-- <img src="@/assets/logo.svg" alt="Logo" v-if="false" /> -->
+<!--      <div class="login-logo">
+        &lt;!&ndash; <img src="@/assets/logo.svg" alt="Logo" v-if="false" /> &ndash;&gt;
         <h1>引江济淮智能问答助手</h1>
-      </div>
+      </div>-->
 
       <!-- 初始化管理员表单 -->
       <div v-if="isFirstRun" class="login-form">
@@ -66,7 +66,8 @@
 
       <!-- 登录表单 -->
       <div v-else class="login-form">
-<!--        <h2>用户登录</h2>-->
+        <h2 class="login-title">统一登录</h2>
+        <p class="login-subtitle">请在这里输入您的登录信息</p>
 
         <a-form
           :model="loginForm"
@@ -367,13 +368,13 @@ onMounted(async () => {
 .login-container {
   width: 420px;
   padding: 40px;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: transparent;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 1;
   backdrop-filter: blur(8px);
-  border: 2px solid white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .login-logo {
@@ -401,6 +402,22 @@ onMounted(async () => {
     font-size: 22px;
     font-weight: 500;
     color: #333;
+  }
+
+  .login-title {
+    text-align: left;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+  }
+
+  .login-subtitle {
+    text-align: left;
+    margin-bottom: 24px;
+    font-size: 14px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.8);
   }
 
   :deep(.ant-form-item) {
