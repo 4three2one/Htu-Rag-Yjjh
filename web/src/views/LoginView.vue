@@ -1,6 +1,6 @@
 <template>
   <!-- TODO 登录页面样式优化；（1）风格和整个系统统一； -->
-  <div class="login-view" :style="{ backgroundImage: `url(${loginBg})` }" :class="{ 'has-alert': serverStatus === 'error' }">
+    <div class="login-view" :style="{ backgroundImage: `url(${loginBg})` }" :class="{ 'has-alert': serverStatus === 'error' }">
     <!-- 服务状态提示 -->
     <div v-if="serverStatus === 'error'" class="server-status-alert">
       <div class="alert-content">
@@ -15,12 +15,18 @@
       </div>
     </div>
 
-    <div class="login-container">
-<!--      <div class="login-logo">
-        &lt;!&ndash; <img src="@/assets/logo.svg" alt="Logo" v-if="false" /> &ndash;&gt;
-        <h1>引江济淮智能问答助手</h1>
-      </div>-->
+          <div class="page-header">
+      <div class="header-content">
+        <div class="logo">
+          <img src="/logo.png" alt="Logo" />
+        </div>
+        <div class="main-title">
+          <h1>江淮运河将军岭段———安全生产标准化知识库系统</h1>
+        </div>
+      </div>
+    </div>
 
+      <div class="login-container">
       <!-- 初始化管理员表单 -->
       <div v-if="isFirstRun" class="login-form">
         <h2>系统初始化</h2>
@@ -375,6 +381,49 @@ onMounted(async () => {
   z-index: 1;
   backdrop-filter: blur(8px);
   border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.page-header {
+  position: fixed;
+  top: 100px;
+  left: 0;
+  right: 0;
+  padding: 20px 0;
+  background-color: transparent;
+  z-index: 10;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.logo {
+  margin-right: 20px;
+  
+  img {
+    height: 50px;
+    width: auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+}
+
+.main-title {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+
+  h1 {
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .login-logo {
