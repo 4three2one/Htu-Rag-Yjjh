@@ -66,7 +66,7 @@
 
       <!-- 登录表单 -->
       <div v-else class="login-form">
-        <h2>用户登录</h2>
+<!--        <h2>用户登录</h2>-->
 
         <a-form
           :model="loginForm"
