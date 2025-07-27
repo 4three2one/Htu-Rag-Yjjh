@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import Request, Body, Depends, HTTPException
 from fastapi import APIRouter
 
-from src import config, knowledge_base, graph_base
+from src import config, knowledge_base
 from server.utils.auth_middleware import get_admin_user, get_superadmin_user
 from server.models.user_model import User
 from src.utils.logging_config import logger
