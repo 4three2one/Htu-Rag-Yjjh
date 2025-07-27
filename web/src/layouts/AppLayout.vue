@@ -20,7 +20,7 @@ const infoStore = useInfoStore()
 
 const layoutSettings = reactive({
   showDebug: false,
-  useTopBar: false, // 是否使用顶栏
+  useTopBar: true, // 是否使用顶栏
 })
 
 // Add state for GitHub stars
@@ -89,7 +89,7 @@ console.log(route)
 
 // 下面是导航菜单部分，添加智能体项
 const mainList = [{
-    name: '智能体',
+    name: '',
     path: '/agent',
     icon: Bot,
     activeIcon: Bot,
@@ -106,7 +106,7 @@ const mainList = [{
     activeIcon: LibraryBig,
     hidden: true, // 隐藏知识库页面
   }, {
-    name: '知识管理',
+    name: '',
     path: '/knowledge',
     icon: BookOpen,
     activeIcon: BookOpen,
@@ -450,7 +450,7 @@ div.header, #app-router-view {
   height: 50px;
   border-right: none;
   border-bottom: 1px solid var(--main-light-2);
-  background-color: var(--main-light-3);
+  background-color: #4268ac;
   padding: 0 20px;
   gap: 24px;
 

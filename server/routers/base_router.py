@@ -39,8 +39,8 @@ def get_default_info_config():
         "organization": {
             "name": "Htu",
             # "short_name": "语析",
-            "logo": "/favicon.svg",
-            "avatar": "/avatar.svg"
+            "logo": "/logo.png",
+            "avatar": "logo.png"
         },
         "branding": {
             "title": "Htu-Rag",

@@ -12,8 +12,8 @@ export const useInfoStore = defineStore('info', () => {
   const organization = computed(() => infoConfig.value.organization || {
     name: "引江济淮合肥建管处",
     // short_name: "语析",
-    logo: "/favicon.svg",
-    avatar: "/avatar.svg"
+    logo: "/logo.png",
+    avatar: "/logo.png"
   })
 
   // 计算属性 - 品牌信息
