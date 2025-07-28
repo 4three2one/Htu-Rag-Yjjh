@@ -208,6 +208,10 @@ async def chat_agent(agent_name: str,
                     delay = 0.7
 
             print(f"{content=}, {msg_data=}")
+            # 添加调试日志
+            if ragflow_data and 'reference' in ragflow_data:
+                print(f"RAGFlow reference数据: {ragflow_data['reference']}")
+            
             time.sleep(delay)
             yield make_chunk(
                 content=content,
