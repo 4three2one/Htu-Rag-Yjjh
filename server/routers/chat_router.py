@@ -162,9 +162,10 @@ async def chat_agent(agent_name: str,
                     user_id=current_user.id,
                     agent_id=agent_name,
                     user_msg=query,
-                    ai_msg=ai_content
+                    ai_msg=ai_content,
+                    ragflow_data=ragflow_data,
                 )
-                yield make_chunk(status="finished",request_id=request_id, meta=meta,ragflow_data=ragflow_data)
+                yield make_chunk(status="finished",request_id=request_id, meta=meta)
                 continue
 
             # 格式1: OpenAI兼容格式
@@ -190,6 +191,7 @@ async def chat_agent(agent_name: str,
                     "content": delta,
                     "id": request_id,
                     "role": "assistant",
+                    "ragflow_data": ragflow_data,
                     "type": "ai",
                 }
 
@@ -211,7 +213,6 @@ async def chat_agent(agent_name: str,
                 request_id=request_id,
                 msg=msg_data,
                 metadata=meta,
-                ragflow_data=ragflow_data,
                 status="loading"
             )
 
