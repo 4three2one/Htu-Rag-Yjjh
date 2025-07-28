@@ -163,7 +163,7 @@ async def chat_agent(agent_name: str,
                     agent_id=agent_name,
                     user_msg=query,
                     ai_msg=ai_content,
-                    ragflow_data=ragflow_data,
+                    reference=ragflow_data['reference'],
                 )
                 yield make_chunk(status="finished",request_id=request_id, meta=meta)
                 continue
@@ -191,7 +191,7 @@ async def chat_agent(agent_name: str,
                     "content": delta,
                     "id": request_id,
                     "role": "assistant",
-                    "ragflow_data": ragflow_data,
+                    "reference": ragflow_data['reference'],
                     "type": "ai",
                 }
 

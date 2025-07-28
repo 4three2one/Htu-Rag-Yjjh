@@ -22,7 +22,7 @@ def make_chunk(content=None, request_id=None, **kwargs):
 
 
 
-async def save_ragflow_history(thread_id, user_id, agent_id, user_msg, ai_msg, ragflow_data=None):
+async def save_ragflow_history(thread_id, user_id, agent_id, user_msg, ai_msg, reference=None):
     async with aiosqlite.connect(RAGFLOW_HISTORY_DB) as db:
         await db.execute(
             """CREATE TABLE IF NOT EXISTS history
@@ -33,17 +33,17 @@ async def save_ragflow_history(thread_id, user_id, agent_id, user_msg, ai_msg, r
                    agent_id TEXT,
                    role TEXT,
                    content TEXT,
-                   ragflow_data TEXT,
+                   reference TEXT,
                    create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                )"""
         )
-        ragflow_data_str = json.dumps(ragflow_data, ensure_ascii=False) if ragflow_data is not None else None
+        reference_str = json.dumps(reference, ensure_ascii=False) if reference is not None else None
         await db.execute(
-            "INSERT INTO history (thread_id, user_id, agent_id, role, content, ragflow_data) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO history (thread_id, user_id, agent_id, role, content, reference) VALUES (?, ?, ?, ?, ?, ?)",
             (thread_id, user_id, agent_id, "user", user_msg, None)
         )
         await db.execute(
-            "INSERT INTO history (thread_id, user_id, agent_id, role, content, ragflow_data) VALUES (?, ?, ?, ?, ?, ?)",
-            (thread_id, user_id, agent_id, "assistant", ai_msg, ragflow_data_str)
+            "INSERT INTO history (thread_id, user_id, agent_id, role, content, reference) VALUES (?, ?, ?, ?, ?, ?)",
+            (thread_id, user_id, agent_id, "assistant", ai_msg, reference_str)
         )
         await db.commit()
