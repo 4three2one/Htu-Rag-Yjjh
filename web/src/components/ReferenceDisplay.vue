@@ -3,7 +3,7 @@
     <div class="reference-header" @click="toggleCollapse">
       <div class="header-left">
         <h4>📚 引用来源</h4>
-        <span class="reference-count">共 {{ referenceData.total }} 个片段</span>
+<!--        <span class="reference-count">共 {{ referenceData.total }} 个片段</span> <span class="reference-count">共 {{ referenceData.total }} 个片段</span>-->
       </div>
       <div class="header-right">
         <span class="collapse-icon" :class="{ 'collapsed': isCollapsed }">
@@ -22,20 +22,20 @@
         <div class="reference-header">
           <div class="document-info">
             <span class="document-name">{{ chunk.document_name }}</span>
-            <span class="chunk-id">#{{ chunk.id }}</span>
+<!--            <span class="chunk-id">#{{ chunk.id }}</span>-->
           </div>
-          <div class="similarity-info">
+<!--          <div class="similarity-info">
             <span class="similarity-score">
               相似度: {{ formatSimilarity(chunk.similarity) }}%
             </span>
-          </div>
+          </div>-->
         </div>
         
         <div class="reference-content">
           <div class="content-text" v-if="chunk.content">
             {{ chunk.content }}
           </div>
-          <div class="content-image" v-if="chunk.doc_type === 'image'">
+<!--          <div class="content-image" v-if="chunk.doc_type === 'image'">
             <img 
               v-if="chunk.image_id" 
               :src="getImageUrl(chunk.image_id)" 
@@ -45,33 +45,33 @@
             <div v-else class="image-placeholder">
               📷 图片内容
             </div>
-          </div>
+          </div>-->
         </div>
         
-        <div class="reference-footer">
+<!--        <div class="reference-footer">
           <span class="doc-type" v-if="chunk.doc_type">
             {{ getDocTypeLabel(chunk.doc_type) }}
           </span>
           <span class="vector-similarity" v-if="chunk.vector_similarity">
             向量相似度: {{ formatSimilarity(chunk.vector_similarity) }}%
           </span>
-        </div>
+        </div>-->
       </div>
     </div>
     
-    <div class="reference-summary" v-if="referenceData.doc_aggs && referenceData.doc_aggs.length > 0" v-show="!isCollapsed">
+<!--    <div class="reference-summary" v-if="referenceData.doc_aggs && referenceData.doc_aggs.length > 0" v-show="!isCollapsed">
       <h5>📊 文档统计</h5>
       <div class="doc-aggs">
-        <div 
-          v-for="agg in referenceData.doc_aggs" 
-          :key="agg.doc_id" 
+        <div
+          v-for="agg in referenceData.doc_aggs"
+          :key="agg.doc_id"
           class="doc-agg-item"
         >
           <span class="doc-name">{{ agg.doc_name }}</span>
           <span class="doc-count">{{ agg.count }} 个片段</span>
         </div>
       </div>
-    </div>
+    </div>-->
   </div>
 </template>
 
