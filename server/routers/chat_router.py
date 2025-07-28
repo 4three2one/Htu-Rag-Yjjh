@@ -124,7 +124,8 @@ async def chat_agent(agent_name: str,
 
     # 根据 thread_id 获取session_id，没有创建新的 session_id
     session_id = None
-    chat_id = None
+    # chat_id = None
+    current_answer_id = str(uuid.uuid4())
     ragflow_obj = db_manager.get_ragflow_by_thread_id(thread_id) if thread_id else None
     if ragflow_obj:
         session_id = ragflow_obj["session_id"]
@@ -175,7 +176,7 @@ async def chat_agent(agent_name: str,
                     content = choice["delta"]["content"]
                     msg_data = {
                         "content": content,
-                        "id": request_id,
+                        "id":current_answer_id,
                         "role": "assistant",
                         "type": "ai"
                     }
@@ -189,7 +190,7 @@ async def chat_agent(agent_name: str,
                 ragflow_data=message
                 msg_data = {
                     "content": delta,
-                    "id": request_id,
+                    "id": current_answer_id,
                     "role": "assistant",
                     "reference": ragflow_data['reference'],
                     "type": "ai",
@@ -209,7 +210,7 @@ async def chat_agent(agent_name: str,
             print(f"{content=}, {msg_data=}")
             time.sleep(delay)
             yield make_chunk(
-                content=delta,
+                content=content,
                 request_id=request_id,
                 msg=msg_data,
                 metadata=meta,
