@@ -477,7 +477,7 @@ async def get_agent_history(
     # if agent_name == "ragflow":
     async with aiosqlite.connect(RAGFLOW_HISTORY_DB) as db:
         cursor = await db.execute(
-            "SELECT role, content, create_at FROM history WHERE thread_id=? AND user_id=? AND agent_id=? ORDER BY id ASC",
+            "SELECT role, content,reference, create_at FROM history WHERE thread_id=? AND user_id=? AND agent_id=? ORDER BY id ASC",
             (thread_id, current_user.id, agent_name)
         )
         rows = await cursor.fetchall()
@@ -486,7 +486,8 @@ async def get_agent_history(
                 "role": row[0],
                 "type": "human" if row[0] == "user" else "ai",
                 "content": row[1],
-                "create_at": row[2]
+                "reference":row[2],
+                "create_at": row[3]
             }
             for row in rows
         ]
