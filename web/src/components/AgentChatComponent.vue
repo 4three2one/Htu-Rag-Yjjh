@@ -225,6 +225,10 @@ const showMsgRefs = (msg) => {
   if (msg.isLast) {
     return ['copy']
   }
+  // 如果有引用信息，也显示引用
+  if (msg.reference) {
+    return ['copy']
+  }
   return false
 }
 
@@ -979,12 +983,38 @@ const processResponseChunk = async (data) => {
     // 代表服务端收到请求并返回第一个响应
     state.waitingServerResponse = false;
     console.log("处理流数据:", data.msg);
+    
+    // 处理引用信息
+   /* if (data.msg.reference) {
+      // 如果reference是字符串，尝试解析为对象
+      if (typeof data.msg.reference === 'string') {
+        try {
+          data.msg.reference = JSON.parse(data.msg.reference);
+        } catch (error) {
+          console.warn('解析引用信息失败:', error);
+        }
+      }
+    }*/
+    
     onGoingConv.msgChunks[data.request_id] = [data.msg];
 
   } else if (data.status === 'loading') {
     // 修复：使用 request_id 作为 key，确保数据能正确存储
     const chunkKey = data.msg.id || data.request_id;
     console.log("分片key:", chunkKey, "msg.id:", data.msg.id, "request_id:", data.request_id); // 调试日志
+    
+/*    // 处理引用信息
+    if (data.msg.reference) {
+      // 如果reference是字符串，尝试解析为对象
+      if (typeof data.msg.reference === 'string') {
+        try {
+          data.msg.reference = JSON.parse(data.msg.reference);
+        } catch (error) {
+          console.warn('解析引用信息失败:', error);
+        }
+      }
+    }*/
+    
     if (chunkKey) {
       if (!onGoingConv.msgChunks[chunkKey]) {
         onGoingConv.msgChunks[chunkKey] = []
@@ -998,6 +1028,17 @@ const processResponseChunk = async (data) => {
     console.error("流式处理出错:", data.message);
     message.error(data.message);
   } else if (data.status === 'finished') {
+/*    // 确保最终消息包含引用信息
+    if (data.msg && data.msg.reference) {
+      // 如果reference是字符串，尝试解析为对象
+      if (typeof data.msg.reference === 'string') {
+        try {
+          data.msg.reference = JSON.parse(data.msg.reference);
+        } catch (error) {
+          console.warn('解析引用信息失败:', error);
+        }
+      }
+    }*/
     await getAgentHistory();
   }
   // await scrollToBottom();
@@ -1136,6 +1177,18 @@ const convertServerHistoryToMessages = (serverHistory) => {
       };
       conversations.push(currentConv);
     } else if (item.type === 'ai' && currentConv) {
+/*      // 确保引用信息被正确传递
+      if (item.reference) {
+        // 如果reference是字符串，尝试解析为对象
+        if (typeof item.reference === 'string') {
+          try {
+            item.reference = JSON.parse(item.reference);
+          } catch (error) {
+            console.warn('解析引用信息失败:', error);
+          }
+        }
+      }
+      */
       currentConv.messages.push(item);
 
       if (item.response_metadata?.finish_reason === 'stop') {
@@ -1324,6 +1377,19 @@ const mergeMessageChunk = (chunks) => {
       result.tool_calls = result.additional_kwargs.tool_calls;
     }
   }
+  
+  // 确保引用信息被正确传递
+/*  if (result.reference) {
+    // 如果reference是字符串，尝试解析为对象
+    if (typeof result.reference === 'string') {
+      try {
+        result.reference = JSON.parse(result.reference);
+      } catch (error) {
+        console.warn('解析引用信息失败:', error);
+      }
+    }
+  }
+  */
   return result;
 }
 

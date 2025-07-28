@@ -69,6 +69,15 @@
       <div v-if="(message.role=='received' || message.role=='assistant') && message.status=='finished' && showRefs">
         <RefsComponent :message="message" :show-refs="showRefs" :is-latest-message="isLatestMessage" @retry="emit('retry')" @openRefs="emit('openRefs', $event)" />
       </div>
+      
+      <!-- 显示引用信息 -->
+      <ReferenceDisplay v-if="hasValidReference" :reference="message.reference" />
+      
+      <!-- 调试信息 -->
+<!--      <div v-if="debugMode && message.reference" class="debug-reference">
+        <pre>{{ JSON.stringify(message.reference, null, 2) }}</pre>
+        <p>有效引用: {{ hasValidReference ? '是' : '否' }}</p>
+      </div>-->
       <!-- 错误消息 -->
     </div>
 
@@ -85,6 +94,7 @@ import { CaretRightOutlined, ThunderboltOutlined, LoadingOutlined } from '@ant-d
 import RefsComponent from '@/components/RefsComponent.vue'
 import { Loader, CircleCheckBig } from 'lucide-vue-next';
 import { ToolResultRenderer } from '@/components/ToolCallingResult'
+import ReferenceDisplay from '@/components/ReferenceDisplay.vue'
 
 
 import { MdPreview } from 'md-editor-v3'
@@ -157,6 +167,42 @@ const parsedMessage = computed(() => {
   }
   message.reasoning_content = message.reasoning_content || message.additional_kwargs?.reasoning_content || '';
   return message;
+});
+
+// 检查是否有有效的引用数据
+const hasValidReference = computed(() => {
+  const reference = props.message.reference;
+  if (!reference) return false;
+  
+  // 处理空对象的情况
+  if (reference === null || reference === undefined) return false;
+  
+  try {
+    let parsedData;
+    // 如果是字符串，尝试解析JSON
+    if (typeof reference === 'string') {
+      parsedData = JSON.parse(reference);
+    } else {
+      // 如果已经是对象，直接使用
+      parsedData = reference;
+    }
+    
+    // 检查解析后的数据是否为空或无效
+    if (!parsedData || typeof parsedData !== 'object') return false;
+    
+    // 检查是否为空对象 {}
+    if (Object.keys(parsedData).length === 0) return false;
+    
+    // 检查是否有有效的chunks数据
+    if (!parsedData.chunks || !Array.isArray(parsedData.chunks) || parsedData.chunks.length === 0) {
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('检查引用数据失败:', error);
+    return false;
+  }
 });
 
 const toggleToolCall = (toolCallId) => {
@@ -301,6 +347,26 @@ const toggleToolCall = (toolCallId) => {
     font-family: monospace;
     max-height: 200px;
     overflow-y: auto;
+  }
+  
+  .debug-reference {
+    display: block;
+    background-color: var(--gray-50);
+    color: var(--gray-700);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-family: monospace;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--gray-300);
+    
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
   }
 
   :deep(.tool-calls-container) {
