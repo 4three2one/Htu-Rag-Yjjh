@@ -209,7 +209,7 @@ async def chat_agent(agent_name: str,
             print(f"{content=}, {msg_data=}")
             time.sleep(delay)
             yield make_chunk(
-                content=content,
+                content=delta,
                 request_id=request_id,
                 msg=msg_data,
                 metadata=meta,
