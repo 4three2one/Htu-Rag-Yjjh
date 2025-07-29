@@ -32,20 +32,16 @@
         </div>
         
         <div class="reference-content">
-          <div class="content-text" v-if="chunk.content">
+          <div class="content-text" v-if="chunk.content && !chunk.image_id">
             {{ chunk.content }}
           </div>
-          <!--          <div class="content-image" v-if="chunk.doc_type === 'image'">
-                      <img
-                        v-if="chunk.image_id"
-                        :src="getImageUrl(chunk.image_id)"
-                        :alt="chunk.document_name"
-                        class="reference-image"
-                      />
-                      <div v-else class="image-placeholder">
-                        📷 图片内容
-                      </div>
-                    </div>-->
+            <div class="content-image" v-if="chunk.doc_type === 'image'">
+              <img
+                v-if="chunk.image_id"
+                :src="getImageUrl(chunk.image_id)"
+                class="reference-image"
+              />
+            </div>
         </div>
 
         <!--        <div class="reference-footer">
@@ -153,7 +149,7 @@ const getDocTypeLabel = (docType) => {
 const getImageUrl = (imageId) => {
   // 这里需要根据你的实际API来构建图片URL
   // 例如: `/api/images/${imageId}`
-  return `/api/images/${imageId}`
+  return `http://192.168.1.118:7080/v1/document/image/${imageId}`
 }
 </script>
 
