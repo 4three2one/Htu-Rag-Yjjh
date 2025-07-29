@@ -247,6 +247,22 @@ async def ragflow_create_session_with_chat_assistant(
     return response.json()
 
 
+async def ragflow_update_session_with_chat_assistant(
+        name: str = None,
+        session_id: str = None,
+) -> Any:
+    """
+    RAGFlow API 更新会话
+    """
+    data = {
+        "name": name
+    }
+    url = f"{base_url}/api/v1/chats/{chat_id}/sessions/{session_id}"
+    print(f"ragflow_update_session {url=}")
+    response = requests.put(url, headers=headers, json=data)
+    response.raise_for_status()  # 如果请求失败会抛出异常
+    return response.json()
+
 
 async def ragflow_download_url(
         dataset_id: str,

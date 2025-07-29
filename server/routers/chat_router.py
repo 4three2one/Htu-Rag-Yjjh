@@ -25,8 +25,9 @@ from server.models.user_model import User
 from server.models.thread_model import Thread
 from server.db_manager import db_manager
 
-from server.third.ragflow_http_api import ragflow_chat_completion_origin,\
-    ragflow_create_session_with_chat_assistant,ragflow_download_url,ragflow_preview_link
+from server.third.ragflow_http_api import ragflow_chat_completion_origin, \
+    ragflow_create_session_with_chat_assistant, ragflow_download_url, ragflow_preview_link, \
+    ragflow_update_session_with_chat_assistant
 from server.third.utils import make_chunk, RAGFLOW_HISTORY_DB,save_ragflow_history
 
 chat = APIRouter(prefix="/chat")
@@ -683,6 +684,11 @@ async def update_thread(
 
     if thread_update.description is not None:
         thread.description = thread_update.description
+
+    # 更新ragflow的会话名称
+    session_id = db_manager.get_ragflow_by_thread_id(thread_id)['session_id']
+    update_res=await ragflow_update_session_with_chat_assistant(thread_update.title, session_id)
+    print(f"{update_res=}")
 
     db.commit()
     db.refresh(thread)
