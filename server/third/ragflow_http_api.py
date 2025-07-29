@@ -234,7 +234,7 @@ async def ragflow_chat_completion_origin(
 
 async def ragflow_create_session_with_chat_assistant(
         name: str = "新会话",
-):
+) -> Any:
     """
     RAGFlow API 创建会话
     """
@@ -245,3 +245,27 @@ async def ragflow_create_session_with_chat_assistant(
     response = requests.post(url, headers=headers, json=data)
     response.raise_for_status()  # 如果请求失败会抛出异常
     return response.json()
+
+
+
+async def ragflow_download_document(
+        dataset_id: str,
+        document_id: str,
+):
+    """
+    RAGFlow API 下载文件
+    """
+    url = f"{base_url}/api/v1/datasets/{dataset_id}/documents/{document_id}"
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    return response.json()
+
+async def ragflow_preview_link(
+        dataset_id: str,
+        document_id: str,
+        document_name: str,
+):
+    url = f"{base_url}/document/{document_id}?ext=docx&prefix=document"
+    return {
+        "url": url,
+    }

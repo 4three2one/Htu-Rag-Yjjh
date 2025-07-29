@@ -35,7 +35,7 @@
       >
         <div class="reference-header">
           <div class="document-info">
-            <span class="document-name">{{ chunk.document_name }}</span>
+            <span class="document-name clickable" @click="openFilePreview(chunk)">{{ chunk.document_name }}</span>
 <!--            <span class="chunk-id">#{{ chunk.id }}</span>-->
           </div>
 <!--          <div class="similarity-info">
@@ -100,6 +100,9 @@
 
 <script setup>
 import {computed, ref, onMounted, onUnmounted} from 'vue'
+import { useRouter } from 'vue-router'
+import { chatApi } from '@/apis/auth_api'
+import { message } from 'ant-design-vue'
 
 const props = defineProps({
   reference: {
@@ -229,6 +232,29 @@ const getImageUrl = (imageId) => {
   // 例如: `/api/images/${imageId}`
   return `http://192.168.1.118:7080/v1/document/image/${imageId}`
 }
+
+// 打开文件预览
+const openFilePreview = async (chunk) => {
+  try {
+    // 从chunk中获取必要的信息
+    const datasetId = chunk.dataset_id || chunk.db_id || 'default'
+    const documentId = chunk.document_id
+    const documentName = chunk.document_name
+    
+    // 调用API获取预览链接
+    const response = await chatApi.getPreviewLink(datasetId, documentId, documentName)
+    
+    if (response && response.url) {
+      // 在新窗口中打开预览链接
+      window.open(response.url, '_blank')
+    } else {
+      message.error('获取预览链接失败')
+    }
+  } catch (error) {
+    console.error('获取预览链接失败:', error)
+    message.error('获取预览链接失败: ' + (error.message || '未知错误'))
+  }
+}
 </script>
 
 <style lang="less" scoped>
@@ -324,6 +350,17 @@ const getImageUrl = (imageId) => {
           font-weight: 600;
           color: var(--gray-800);
           font-size: 14px;
+          
+          &.clickable {
+            cursor: pointer;
+            color: var(--main-600);
+            transition: color 0.2s ease;
+            
+            &:hover {
+              color: var(--main-700);
+              text-decoration: underline;
+            }
+          }
         }
 
         .chunk-id {
