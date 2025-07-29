@@ -32,7 +32,7 @@
         </div>
         
         <div class="reference-content">
-          <div class="content-text" v-if="chunk.content && !chunk.image_id">
+          <div class="content-text" v-if="chunk.content">
             {{ chunk.content }}
           </div>
             <div class="content-image" v-if="chunk.doc_type === 'image'">
