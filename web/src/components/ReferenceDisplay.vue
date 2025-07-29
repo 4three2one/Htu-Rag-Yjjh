@@ -233,7 +233,7 @@ const getImageUrl = (imageId) => {
   return `http://192.168.1.118:7080/v1/document/image/${imageId}`
 }
 
-// 打开文件预览
+// 下载文件
 const openFilePreview = async (chunk) => {
   try {
     // 从chunk中获取必要的信息
@@ -241,18 +241,74 @@ const openFilePreview = async (chunk) => {
     const documentId = chunk.document_id
     const documentName = chunk.document_name
     
-    // 调用API获取预览链接
-    const response = await chatApi.getPreviewLink(datasetId, documentId, documentName)
+    // 显示加载提示
+    message.loading('正在准备下载...', 0)
+    
+    // 调用API下载文档
+    const response = await chatApi.downloadDocument(datasetId, documentId)
+
+    console.log('下载API响应:', response)
+    // 关闭加载提示
+    message.destroy()
     
     if (response && response.url) {
-      // 在新窗口中打开预览链接
-      window.open(response.url, '_blank')
+      // 如果有headers信息，说明需要特殊认证
+      if (response.headers) {
+        // 创建一个带有认证头的请求
+        const downloadWithAuth = async () => {
+          try {
+            const authResponse = await fetch(response.url, {
+              method: 'GET',
+              headers: response.headers
+            })
+            
+            if (authResponse.ok) {
+              // 获取文件blob
+              const blob = await authResponse.blob()
+              
+              // 创建下载链接
+              const url = window.URL.createObjectURL(blob)
+              const link = document.createElement('a')
+              link.href = url
+              link.download = documentName || 'document'
+              document.body.appendChild(link)
+              link.click()
+              document.body.removeChild(link)
+              
+              // 清理URL对象
+              window.URL.revokeObjectURL(url)
+              
+              message.success('文件下载成功')
+            } else {
+              throw new Error(`下载失败: ${authResponse.status}`)
+            }
+          } catch (error) {
+            console.error('认证下载失败:', error)
+            message.error('下载失败: ' + error.message)
+          }
+        }
+        
+        // 执行认证下载
+        downloadWithAuth()
+      } else {
+        // 没有headers，直接打开链接
+        if (response.url.startsWith('http')) {
+          window.open(response.url, '_blank')
+          message.success('下载链接已打开')
+        } else {
+          const downloadUrl = response.url.startsWith('/') ? response.url : `/${response.url}`
+          window.open(downloadUrl, '_blank')
+          message.success('下载链接已打开')
+        }
+      }
     } else {
-      message.error('获取预览链接失败')
+      message.error('下载失败：未获取到下载链接')
     }
   } catch (error) {
-    console.error('获取预览链接失败:', error)
-    message.error('获取预览链接失败: ' + (error.message || '未知错误'))
+    // 关闭加载提示
+    message.destroy()
+    console.error('下载失败:', error)
+    message.error('下载失败: ' + (error.message || '未知错误'))
   }
 }
 </script>
@@ -359,6 +415,12 @@ const openFilePreview = async (chunk) => {
             &:hover {
               color: var(--main-700);
               text-decoration: underline;
+            }
+            
+            &::after {
+              content: ' ⬇️';
+              font-size: 12px;
+              opacity: 0.7;
             }
           }
         }

@@ -26,7 +26,7 @@ from server.models.thread_model import Thread
 from server.db_manager import db_manager
 
 from server.third.ragflow_http_api import ragflow_chat_completion_origin,\
-    ragflow_create_session_with_chat_assistant,ragflow_download_document,ragflow_preview_link
+    ragflow_create_session_with_chat_assistant,ragflow_download_url,ragflow_preview_link
 from server.third.utils import make_chunk, RAGFLOW_HISTORY_DB,save_ragflow_history
 
 chat = APIRouter(prefix="/chat")
@@ -110,8 +110,8 @@ async def get_preview_link(dataset_id,document_id,document_name,current_user: Us
 
 
 @chat.get("/download_document")
-async def get_download_document(dataset_id,document_id,current_user: User = Depends(get_required_user)):
-    return await ragflow_download_document(dataset_id, document_id)
+async def get_download_document_url(dataset_id,document_id,current_user: User = Depends(get_required_user)):
+    return await ragflow_download_url(dataset_id, document_id)
 
 @chat.post("/agent/{agent_name}")
 async def chat_agent(agent_name: str,

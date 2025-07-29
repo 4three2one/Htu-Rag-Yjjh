@@ -248,7 +248,7 @@ async def ragflow_create_session_with_chat_assistant(
 
 
 
-async def ragflow_download_document(
+async def ragflow_download_url(
         dataset_id: str,
         document_id: str,
 ):
@@ -256,9 +256,11 @@ async def ragflow_download_document(
     RAGFlow API 下载文件
     """
     url = f"{base_url}/api/v1/datasets/{dataset_id}/documents/{document_id}"
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    return response.json()
+    print(f"download url: {url}")
+    return  {
+        "url": url,
+        "headers": headers,
+    }
 
 async def ragflow_preview_link(
         dataset_id: str,

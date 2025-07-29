@@ -101,14 +101,13 @@ export const chatApi = {
   getTools: () => apiGet('/api/chat/tools', {}, true),
 
   /**
-   * 获取文档预览链接
+   * 下载文档
    * @param {string} datasetId - 数据集ID
    * @param {string} documentId - 文档ID
-   * @param {string} documentName - 文档名称
-   * @returns {Promise} - 预览链接
+   * @returns {Promise} - 下载响应
    */
-  getPreviewLink: (datasetId, documentId, documentName) => 
-    apiGet(`/api/chat/preview_link?dataset_id=${datasetId}&document_id=${documentId}&document_name=${encodeURIComponent(documentName)}`, {}, true),
+  downloadDocument: (datasetId, documentId) => 
+    apiGet(`/api/chat/download_document?dataset_id=${datasetId}&document_id=${documentId}`, {}, true),
 
   /**
    * 获取模型提供商的模型列表
