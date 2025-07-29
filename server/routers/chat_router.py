@@ -146,6 +146,14 @@ async def chat_agent(agent_name: str,
         session_id = ragflow_resp['data']['id']
         db_manager.add_ragflow(thread_id=thread_id, chat_id=chat_id, session_id=session_id)
 
+    def process_content(content):
+        import re
+        # 先替换所有 [ID:数字] 为 ⓘ
+        processed_content = re.sub(r'\[ID:\d+\]', r'ⓘ', content)
+        # 然后合并连续的 ⓘ 符号，只保留一个
+        processed_content = re.sub(r'ⓘ\s*ⓘ+', r'ⓘ', processed_content)
+        return processed_content
+
     async def stream_messages():
         yield make_chunk(status="init",request_id=request_id, meta=meta, msg=HumanMessage(content=query).model_dump())
         # 正确处理流式数据
@@ -173,7 +181,7 @@ async def chat_agent(agent_name: str,
                     user_id=current_user.id,
                     agent_id=agent_name,
                     user_msg=query,
-                    ai_msg=ai_content,
+                    ai_msg=process_content(ai_content),
                     reference=ragflow_data['reference'],
                 )
                 yield make_chunk(status="finished",request_id=request_id, meta=meta)
