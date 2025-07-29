@@ -2,13 +2,27 @@
   <div class="reference-display" v-if="referenceData">
     <div class="reference-header" @click="toggleCollapse">
       <div class="header-left">
-        <h4>📚 引用信息</h4>
+        <h4>📚 参考知识</h4>
         <span class="reference-count<!---->"></span>
       </div>
       <div class="header-right">
         <span class="collapse-icon" :class="{ 'collapsed': isCollapsed }">
           ▼
         </span>
+      </div>
+    </div>
+
+    <div class="reference-summary" v-if="referenceData.doc_aggs && referenceData.doc_aggs.length > 0"
+         v-show="!isCollapsed">
+      <div class="doc-aggs">
+        <div
+          v-for="agg in referenceData.doc_aggs"
+          :key="agg.doc_id"
+          class="doc-agg-item"
+        >
+          <span class="doc-name">{{ agg.doc_name }}</span>
+<!--          <span class="doc-count">{{ agg.count }} 个片段</span>-->
+        </div>
       </div>
     </div>
 
@@ -30,7 +44,7 @@
             </span>
           </div>-->
         </div>
-        
+
         <div class="reference-content">
           <div class="content-text" v-if="chunk.content">
             {{ chunk.content }}
@@ -57,20 +71,6 @@
       </div>
     </div>
 
-    <div class="reference-summary" v-if="referenceData.doc_aggs && referenceData.doc_aggs.length > 0"
-         v-show="!isCollapsed">
-      <h5>📊 文档统计</h5>
-      <div class="doc-aggs">
-        <div
-            v-for="agg in referenceData.doc_aggs"
-            :key="agg.doc_id"
-            class="doc-agg-item"
-        >
-          <span class="doc-name">{{ agg.doc_name }}</span>
-          <span class="doc-count">{{ agg.count }} 个片段</span>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- 图片放大模态框 -->
@@ -234,7 +234,7 @@ const getImageUrl = (imageId) => {
 <style lang="less" scoped>
 .reference-display {
   margin-top: 16px;
-  padding: 16px;
+  padding: 0;
   background-color: var(--gray-50);
   border-radius: 12px;
   border: 1px solid var(--gray-200);
