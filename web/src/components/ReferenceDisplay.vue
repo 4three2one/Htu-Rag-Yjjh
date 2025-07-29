@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <div class="reference-summary" v-if="referenceData.doc_aggs && referenceData.doc_aggs.length > 0"
+<!--    <div class="reference-summary" v-if="referenceData.doc_aggs && referenceData.doc_aggs.length > 0"
          v-show="!isCollapsed">
       <div class="doc-aggs">
         <div
@@ -21,10 +21,10 @@
           class="doc-agg-item"
         >
           <span class="doc-name">{{ agg.doc_name }}</span>
-<!--          <span class="doc-count">{{ agg.count }} 个片段</span>-->
+&lt;!&ndash;          <span class="doc-count">{{ agg.count }} 个片段</span>&ndash;&gt;
         </div>
       </div>
-    </div>
+    </div>-->
 
     <div class="reference-list" v-show="!isCollapsed">
       <div
