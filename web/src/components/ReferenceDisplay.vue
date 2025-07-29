@@ -40,6 +40,8 @@
                 v-if="chunk.image_id"
                 :src="getImageUrl(chunk.image_id)"
                 class="reference-image"
+                @click="openImageModal(chunk.image_id, chunk.document_name)"
+                :alt="chunk.document_name"
               />
             </div>
         </div>
@@ -70,10 +72,34 @@
       </div>
     </div>
   </div>
+
+  <!-- 图片放大模态框 -->
+  <div v-if="imageModalVisible" class="image-modal-overlay" @click="closeImageModal">
+    <div class="image-modal-content" @click.stop>
+      <div class="image-modal-header">
+        <span class="image-modal-title">{{ currentImageTitle }}</span>
+        <button class="image-modal-close" @click="closeImageModal">×</button>
+      </div>
+      <div class="image-modal-body" :class="{ 'loading': imageLoading }">
+        <img 
+          v-if="!imageError"
+          :src="getImageUrl(currentImageId)" 
+          :alt="currentImageTitle"
+          class="image-modal-image"
+          @load="onImageLoad"
+          @error="onImageError"
+        />
+        <div v-else class="image-error">
+          <div class="error-icon">📷</div>
+          <div class="error-text">图片加载失败</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import {computed, ref} from 'vue'
+import {computed, ref, onMounted, onUnmounted} from 'vue'
 
 const props = defineProps({
   reference: {
@@ -85,10 +111,62 @@ const props = defineProps({
 // 折叠状态 - 默认折叠（不显示）
 const isCollapsed = ref(true)
 
+// 图片模态框状态
+const imageModalVisible = ref(false)
+const currentImageId = ref('')
+const currentImageTitle = ref('')
+const imageLoading = ref(false)
+const imageError = ref(false)
+
 // 切换折叠状态
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
 }
+
+// 打开图片模态框
+const openImageModal = (imageId, title) => {
+  currentImageId.value = imageId
+  currentImageTitle.value = title || '图片'
+  imageModalVisible.value = true
+  imageLoading.value = true
+  imageError.value = false
+}
+
+// 关闭图片模态框
+const closeImageModal = () => {
+  imageModalVisible.value = false
+  currentImageId.value = ''
+  currentImageTitle.value = ''
+  imageLoading.value = false
+  imageError.value = false
+}
+
+// 图片加载完成
+const onImageLoad = () => {
+  imageLoading.value = false
+}
+
+// 图片加载错误
+const onImageError = () => {
+  imageLoading.value = false
+  imageError.value = true
+}
+
+// 键盘事件处理
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && imageModalVisible.value) {
+    closeImageModal()
+  }
+}
+
+// 监听键盘事件
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
 
 // 解析引用数据
 const referenceData = computed(() => {
@@ -283,12 +361,19 @@ const getImageUrl = (imageId) => {
       }
 
       .content-image {
-        .reference-image {
-          max-width: 100%;
-          max-height: 200px;
-          border-radius: 4px;
-          border: 1px solid var(--gray-200);
+              .reference-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 4px;
+        border: 1px solid var(--gray-200);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        &:hover {
+          transform: scale(1.02);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
+      }
 
         .image-placeholder {
           display: flex;
@@ -366,6 +451,114 @@ const getImageUrl = (imageId) => {
   }
 }
 
+// 图片模态框样式
+.image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+
+  .image-modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: slideInUp 0.3s ease;
+
+    .image-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--gray-50);
+
+      .image-modal-title {
+        font-weight: 600;
+        color: var(--gray-800);
+        font-size: 16px;
+      }
+
+      .image-modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: var(--gray-600);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: var(--gray-200);
+          color: var(--gray-800);
+        }
+      }
+    }
+
+    .image-modal-body {
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      position: relative;
+
+      .image-modal-image {
+        max-width: 100%;
+        max-height: 70vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--gray-300);
+        border-top-color: var(--main-500);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: none;
+      }
+
+      &.loading::before {
+        display: block;
+      }
+
+      .image-error {
+        text-align: center;
+        color: var(--gray-600);
+        padding: 40px 20px;
+
+        .error-icon {
+          font-size: 48px;
+          margin-bottom: 16px;
+          opacity: 0.5;
+        }
+
+        .error-text {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}
+
 // 响应式设计
 @media (max-width: 768px) {
   .reference-display {
@@ -390,6 +583,34 @@ const getImageUrl = (imageId) => {
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
+      }
+    }
+  }
+
+  .image-modal-overlay {
+    .image-modal-content {
+      max-width: 95vw;
+      max-height: 95vh;
+      margin: 10px;
+
+      .image-modal-header {
+        padding: 12px 16px;
+
+        .image-modal-title {
+          font-size: 14px;
+        }
+
+        .image-modal-close {
+          font-size: 20px;
+        }
+      }
+
+      .image-modal-body {
+        padding: 16px;
+
+        .image-modal-image {
+          max-height: 60vh;
+        }
       }
     }
   }
