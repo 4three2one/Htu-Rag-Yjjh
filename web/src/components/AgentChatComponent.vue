@@ -54,8 +54,13 @@
       </div>
 
       <div v-else-if="convs.length === 0 && !onGoingConv.messages.length" class="chat-examples">
-        <h1>{{ currentAgent ? currentAgent.name : '请选择一个智能体开始对话' }}</h1>
-        <p>{{ currentAgent ? currentAgent.description : '不同的智能体有不同的专长和能力' }}</p>
+        <div class="welcome-content">
+          <div class="welcome-logo">
+            <img src="/logo.png" alt="智能助手" />
+            <h1>我是智能助手，很高兴为你服务!</h1>
+          </div>
+          <p>我可以帮你解决泵站、船闸、渡槽等工程的各类疑惑，请把你的任务交给我吧</p>
+        </div>
       </div>
 
       <div class="chat-box" ref="messagesContainer">
@@ -1849,5 +1854,89 @@ const mergeMessageChunk = (chunks) => {
 
 .hide-text {
   display: none;
+}
+
+// 欢迎页面样式
+.chat-examples {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+  
+  .welcome-content {
+    max-width: 600px;
+    animation: fadeInUp 0.6s ease-out;
+    
+    .welcome-logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      
+      img {
+        width: 60px;
+        height: 60px;
+        //border-radius: 50%;
+        //box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+      
+      h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin: 0;
+        line-height: 1.3;
+      }
+    }
+    
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      margin-bottom: 1rem;
+      line-height: 1.3;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      color: var(--gray-600);
+      line-height: 1.6;
+      margin: 0;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-examples {
+    padding: 1rem;
+    
+    .welcome-content {
+      .welcome-logo {
+        gap: 0.8rem;
+        
+        img {
+          width: 60px;
+          height: 60px;
+        }
+        
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+      
+      p {
+        font-size: 1rem;
+      }
+    }
+  }
 }
 </style>
