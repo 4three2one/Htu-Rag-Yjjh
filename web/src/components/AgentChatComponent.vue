@@ -53,7 +53,7 @@
         <span>正在加载历史记录...</span>
       </div>
 
-      <div v-else-if="convs.length === 0 && !onGoingConv.messages.length" class="chat-examples">
+      <div v-else-if="convs.length === 0 && !onGoingConv.messages.length && !state.isProcessingRequest" class="chat-examples">
         <div class="welcome-content">
           <div class="welcome-logo">
             <img src="/logo.png" alt="智能助手" />
