@@ -5,16 +5,7 @@ from src.utils import logger
 import requests
 import json
 from typing import AsyncGenerator
-
-# 配置 ragflow HTTP API 基础地址和 API KEY
-api_key = os.getenv("RAGFLOW_API_KEY", "")
-base_url = os.getenv("RAGFLOW_BASE_URL", "")
-chat_id=os.getenv("RAGFLOW_CHAT_ID", "")
-
-
-headers = {
-    "Authorization": f"Bearer {api_key}"
-}
+from server.third.ragflow_config import api_key, base_url, chat_id, headers
 
 
 async def list_documents_http(
@@ -231,7 +222,6 @@ async def ragflow_chat_completion_origin(
             yield {"error": f"请求失败: {str(e)}"}
 
 
-
 async def ragflow_create_session_with_chat_assistant(
         name: str = "新会话",
 ) -> Any:
@@ -273,17 +263,37 @@ async def ragflow_download_url(
     """
     url = f"{base_url}/api/v1/datasets/{dataset_id}/documents/{document_id}"
     print(f"download url: {url}")
-    return  {
+    return {
         "url": url,
         "headers": headers,
     }
+
 
 async def ragflow_preview_link(
         dataset_id: str,
         document_id: str,
         document_name: str,
 ):
+    """
+    RAGFlow API 获取预览的url
+    """
     url = f"{base_url}/document/{document_id}?ext=docx&prefix=document"
     return {
         "url": url,
     }
+
+
+async def ragflow_delete_chat_session(
+        session_id: str,
+):
+    """
+       RAGFlow API 删除会话
+       """
+    data = {
+        "ids": [session_id]
+    }
+    url = f"{base_url}/api/v1/chats/{chat_id}/sessions"
+    print(f"ragflow_update_session {url=}")
+    response = requests.delete(url, headers=headers, json=data)
+    response.raise_for_status()
+    return response.json()

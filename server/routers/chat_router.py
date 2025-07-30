@@ -24,10 +24,7 @@ from server.utils.auth_middleware import get_required_user, get_db
 from server.models.user_model import User
 from server.models.thread_model import Thread
 from server.db_manager import db_manager
-
-from server.third.ragflow_http_api import ragflow_chat_completion_origin, \
-    ragflow_create_session_with_chat_assistant, ragflow_download_url, ragflow_preview_link, \
-    ragflow_update_session_with_chat_assistant
+from server.third.ragflow_http_api import *
 from server.third.utils import make_chunk, RAGFLOW_HISTORY_DB,save_ragflow_history
 
 chat = APIRouter(prefix="/chat")
