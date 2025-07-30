@@ -1528,6 +1528,30 @@ const mergeMessageChunk = (chunks) => {
   p {
     color: var(--gray-700);
   }
+
+  .welcome-content {
+    .welcome-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-bottom: 2rem;
+
+      img {
+        width: 50px;
+        height: 50px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin: 0;
+      }
+    }
+
+    p {
+      font-size: 1rem;
+    }
+  }
 }
 
 .chat-loading {
@@ -1856,29 +1880,6 @@ const mergeMessageChunk = (chunks) => {
 
 .hide-text {
   display: none;
-}
-
-.chat-examples {
-    padding: 1rem;
-
-    .welcome-content {
-      .welcome-logo {
-        gap: 0.8rem;
-
-        img {
-          width: 50px;
-          height: 50px;
-        }
-
-        h1 {
-          font-size: 1.5rem;
-        }
-      }
-
-      p {
-        font-size: 1rem;
-      }
-    }
 }
 
 </style>
