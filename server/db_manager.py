@@ -137,6 +137,16 @@ class DBManager:
                 }
             return None
 
+
+    def get_ragflow_session_by_thread_id(self, thread_id):
+        """通过 thread_id 获取 ragflow 记录，返回 dict"""
+        with self.get_session_context() as session:
+            ragflow = session.query(RagflowModel).filter_by(thread_id=thread_id).first()
+            if ragflow:
+                return ragflow.session_id
+            return None
+
+
     def update_ragflow(self, ragflow_id, **kwargs):
         """更新 ragflow 记录"""
         with self.get_session_context() as session:

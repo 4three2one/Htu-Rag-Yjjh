@@ -296,4 +296,4 @@ async def ragflow_delete_chat_session(
     print(f"ragflow_update_session {url=}")
     response = requests.delete(url, headers=headers, json=data)
     response.raise_for_status()
-    return response.json()
+    print(response.json())

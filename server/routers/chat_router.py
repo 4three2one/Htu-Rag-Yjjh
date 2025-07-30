@@ -651,6 +651,10 @@ async def delete_thread(
     thread.status = 0
     db.commit()
 
+    # 删除ragflow
+    await ragflow_delete_chat_session(db_manager.get_ragflow_session_by_thread_id(thread_id))
+
+
     return {"message": "删除成功"}
 
 
