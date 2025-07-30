@@ -149,7 +149,7 @@ async def chat_agent(agent_name: str,
         # 先替换所有 [ID:数字] 为 ⓘ
         processed_content = re.sub(r'\[ID:\d+\]', r'ⓘ', content)
         # 然后合并连续的 ⓘ 符号，只保留一个
-        processed_content = re.sub(r'ⓘ\s*ⓘ+', r'ⓘ', processed_content)
+        processed_content = re.sub(r'(ⓘ\s*)+', r'ⓘ', processed_content)
         return processed_content
 
     async def stream_messages():
