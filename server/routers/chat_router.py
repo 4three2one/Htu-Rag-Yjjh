@@ -126,6 +126,10 @@ async def chat_agent(agent_name: str,
         "thread_id": config.get("thread_id"),
         "user_id": current_user.id
     })
+    
+    # 记录 api_type 信息
+    api_type = meta.get("api_type", "openai")
+    logger.info(f"Agent {agent_name} using api_type: {api_type}")
     request_id = meta.get("request_id")
     thread_id = config.get("thread_id")
     delay = 0.01
@@ -382,6 +386,10 @@ async def chat_agent_origin(agent_name: str,
         "thread_id": config.get("thread_id"),
         "user_id": current_user.id
     })
+    
+    # 记录 api_type 信息
+    api_type = meta.get("api_type", "unknown")
+    logger.info(f"Agent {agent_name} using api_type: {api_type}")
 
     # 将meta和thread_id整合到config中
     def make_chunk(content=None, **kwargs):

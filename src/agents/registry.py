@@ -165,6 +165,7 @@ class BaseAgent:
 
     name = "base_agent"
     description = "base_agent"
+    api_type = "openai"
     config_schema: Configuration = Configuration
     requirements: list[str]
 
@@ -175,6 +176,7 @@ class BaseAgent:
         return {
             "name": self.name if hasattr(self, "name") else "Unknown",
             "description": self.description if hasattr(self, "description") else "Unknown",
+            "api_type": getattr(self, "api_type", "unknown"),
             "config_schema": self.config_schema.to_dict(),
             "requirements": self.requirements if hasattr(self, "requirements") else [],
             "all_tools": self.all_tools if hasattr(self, "all_tools") else [],

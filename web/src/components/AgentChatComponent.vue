@@ -904,7 +904,8 @@ const sendMessageToServer = async (text) => {
       thread_id: currentChatId.value
     },
     meta: {
-      request_id: currentAgent.value.name + '-' + new Date().getTime()
+      request_id: currentAgent.value.name + '-' + new Date().getTime(),
+      api_type: currentAgent.value.api_type || 'openai'
     }
   };
 
