@@ -108,13 +108,19 @@ async def stream_messages_4_ragflow(agent_name, query, request_id, session_id, m
 
 async def stream_messages_4_dify_openai(agent_name, query, request_id, meta, current_user, config):
 
+    print("agent_name", agent_name)
+    if "报告" in agent_name:
+        model = "dify|app-W1fb9flI4juhc6jcjIUgLMRj|Chat"
+    else:
+        model="dify|app-srwTCijv7vzZF3OWbPMh28ao|Chat"
+
     current_answer_id = str(uuid.uuid4())
     yield make_chunk(status="init",  request_id=request_id,meta=meta, msg=HumanMessage(content=query).model_dump())
     chat_model = ChatOpenAI(
         api_key="http://192.168.1.118:18080/v1",
         base_url="http://192.168.1.118:3099/v1",
         # model="dify|app-W1fb9flI4juhc6jcjIUgLMRj|Chat",
-        model="dify|app-srwTCijv7vzZF3OWbPMh28ao|Chat",
+        model=model,
         streaming=True,
     )
     messages = [HumanMessage(content=query)]

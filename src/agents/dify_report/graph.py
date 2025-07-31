@@ -14,15 +14,15 @@ from src import config as sys_config
 from src.utils import logger
 from src.agents.registry import State, BaseAgent
 from src.agents.utils import load_chat_model, get_cur_time_with_utc
-from src.agents.ragflow.configuration import RagFlowConfiguration
+from src.agents.dify_report.configuration import DifyReportConfiguration
 from src.agents.tools_factory import get_all_tools
 
-class DifyAgent(BaseAgent):
-    name = "智能体"
+class DifyReport(BaseAgent):
+    name = "报告生成"
     description = "报告生成，聊天助手"
     api_type = "openai"
     requirements = []
-    config_schema = RagFlowConfiguration
+    config_schema = DifyReportConfiguration
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -100,7 +100,7 @@ class DifyAgent(BaseAgent):
         return AsyncSqliteSaver(await self.get_async_conn())
 
 def main():
-    agent = RagflowAgent(RagFlowConfiguration())
+    agent = DifyReport(DifyReportConfiguration())
 
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
