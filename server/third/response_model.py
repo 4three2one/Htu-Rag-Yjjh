@@ -4,6 +4,8 @@ from langchain_core.messages import AIMessageChunk, HumanMessage
 from server.third.ragflow_http_api import *
 import time
 import uuid
+from langchain_openai import ChatOpenAI
+
 
 def process_content(content):
     import re
@@ -102,3 +104,42 @@ async def stream_messages_4_ragflow(agent_name, query, request_id, session_id, m
             metadata=meta,
             status="loading"
         )
+
+
+async def stream_messages_4_dify_openai(agent_name, query, request_id, meta, current_user, config):
+
+    current_answer_id = str(uuid.uuid4())
+    yield make_chunk(status="init",  request_id=request_id,meta=meta, msg=HumanMessage(content=query).model_dump())
+    chat_model = ChatOpenAI(
+        api_key="http://192.168.1.118:18080/v1",
+        base_url="http://192.168.1.118:3099/v1",
+        # model="dify|app-W1fb9flI4juhc6jcjIUgLMRj|Chat",
+        model="dify|app-srwTCijv7vzZF3OWbPMh28ao|Chat",
+        streaming=True,
+    )
+    messages = [HumanMessage(content=query)]
+
+    ai_content = ""
+    async for chunk in chat_model.astream(messages):
+        if hasattr(chunk, "content"):
+            ai_content += chunk.content
+            print(f"接收到 dify openai message {chunk.content=}")
+
+            msg_data = {
+                "content": chunk.content,
+                "id": current_answer_id,
+                "role": "assistant",
+                "reference": [],
+                "type": "ai",
+            }
+            yield make_chunk(content=chunk.content,  request_id=request_id,msg=msg_data, metadata=meta,status="loading")
+
+    await save_ragflow_history(
+        thread_id=config["thread_id"],
+        user_id=current_user.id,
+        agent_id=agent_name,
+        user_msg=query,
+        ai_msg=process_content(ai_content),
+        reference=[],
+    )
+    yield make_chunk(status="finished", meta=meta,request_id=request_id,)

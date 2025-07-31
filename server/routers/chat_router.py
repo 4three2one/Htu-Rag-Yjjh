@@ -25,7 +25,7 @@ from server.models.user_model import User
 from server.models.thread_model import Thread
 from server.db_manager import db_manager
 from server.third.ragflow_http_api import *
-from server.third.response_model import stream_messages_4_ragflow
+from server.third.response_model import stream_messages_4_ragflow,stream_messages_4_dify_openai
 from server.third.utils import make_chunk, RAGFLOW_HISTORY_DB,save_ragflow_history
 
 chat = APIRouter(prefix="/chat")
@@ -155,135 +155,17 @@ async def chat_agent(agent_name: str,
                         current_user=current_user,
                         config=config)
     else:
-        stream_messages=None
+        stream_messages = stream_messages_4_dify_openai(query=query,
+                                                        request_id=request_id,
+                                                        meta=meta,
+                                                        config=config,
+                                                        agent_name=agent_name,
+                                                        current_user=current_user
+                                                    )
+
+
 
     return StreamingResponse(stream_messages, media_type='application/json')
-
-    # 新增分支：ragflow 直接用ChatOpenAI
-    # if agent_name == "ragflow":
-    #     async def stream_ragflow():
-    #         try:
-    #             thread_id = config.get("thread_id")
-    #             if not thread_id:
-    #                 thread_id = str(uuid.uuid4())
-    #                 config["thread_id"] = thread_id
-    #
-    #             # 默认模型可根据需要调整
-    #             # model_name = config.get("model", "openai/gpt-3.5-turbo")
-    #             model_name = "deepseek/deepseek-chat"
-    #             chat_model = load_chat_model(model_name)
-    #             messages = [HumanMessage(content=query)]
-    #             yield make_chunk(status="init", meta=meta, msg=messages[0].model_dump())
-    #
-    #             ai_content = ""
-    #             async for chunk in chat_model.astream(messages):
-    #                 if hasattr(chunk, "content"):
-    #                     ai_content += chunk.content
-    #                     yield make_chunk(content=chunk.content, msg=chunk.model_dump(), status="loading")
-    #
-    #             await save_ragflow_history(
-    #                 thread_id=thread_id,
-    #                 user_id=current_user.id,
-    #                 agent_id=agent_name,
-    #                 user_msg=query,
-    #                 ai_msg=ai_content
-    #             )
-    #
-    #             yield make_chunk(status="finished", meta=meta)
-    #         except Exception as e:
-    #             import traceback
-    #             yield make_chunk(message=f"Error in ragflow: {e}", status="error")
-    #     return StreamingResponse(stream_ragflow(), media_type='application/json')
-    # async def stream_ragflow():
-    #     try:
-    #         thread_id = config.get("thread_id")
-    #         if not thread_id:
-    #             thread_id = str(uuid.uuid4())
-    #             config["thread_id"] = thread_id
-    #
-    #         yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
-    #
-    #         ai_content = ""
-    #         async for chunk in ragflow_chat_completion_openai(query):
-    #             # 提取内容
-    #             content = None
-    #             if hasattr(chunk, "choices") and chunk.choices:
-    #                 delta = getattr(chunk.choices[0], "delta", None)
-    #                 if delta and hasattr(delta, "content"):
-    #                     content = delta.content
-    #             if content:
-    #                 ai_content += content
-    #                 msg = {
-    #                     "content": content,
-    #                     "role": "assistant",
-    #                     "type": "ai"
-    #                 }
-    #                 yield make_chunk(content=content, msg=msg, status="loading")
-    #
-    #         await save_ragflow_history(
-    #             thread_id=thread_id,
-    #             user_id=current_user.id,
-    #             agent_id=agent_name,
-    #             user_msg=query,
-    #             ai_msg=ai_content
-    #         )
-    #
-    #         yield make_chunk(status="finished", meta=meta)
-    #     except Exception as e:
-    #         import traceback
-    #         yield make_chunk(message=f"Error in ragflow: {e}", status="error")
-    # return StreamingResponse(stream_ragflow(), media_type='application/json')
-
-    # 将meta和thread_id整合到config中
-    # def make_chunk(content=None, **kwargs):
-    #
-    #     return json.dumps({
-    #         "request_id": meta.get("request_id"),
-    #         "response": content,
-    #         **kwargs
-    #     }, ensure_ascii=False).encode('utf-8') + b"\n"
-    #
-    # async def stream_messages():
-    #
-    #     # 代表服务端已经收到了请求
-    #     yield make_chunk(status="init", meta=meta, msg=HumanMessage(content=query).model_dump())
-    #
-    #     try:
-    #         agent = agent_manager.get_agent(agent_name)
-    #     except Exception as e:
-    #         logger.error(f"Error getting agent {agent_name}: {e}, {traceback.format_exc()}")
-    #         yield make_chunk(message=f"Error getting agent {agent_name}: {e}", status="error")
-    #         return
-    #
-    #     messages = [{"role": "user", "content": query}]
-    #
-    #     # 构造运行时配置，如果没有thread_id则生成一个
-    #     config["user_id"] = current_user.id
-    #     if "thread_id" not in config or not config["thread_id"]:
-    #         config["thread_id"] = str(uuid.uuid4())
-    #         logger.debug(f"没有thread_id，生成一个: {config['thread_id']=}")
-    #
-    #     runnable_config = {"configurable": {**config}}
-    #
-    #     try:
-    #         async for msg, metadata in agent.stream_messages(messages, config_schema=runnable_config):
-    #             # logger.debug(f"msg: {msg.model_dump()}, metadata: {metadata}")
-    #             if isinstance(msg, AIMessageChunk):
-    #                 yield make_chunk(content=msg.content,
-    #                                 msg=msg.model_dump(),
-    #                                 metadata=metadata,
-    #                                 status="loading")
-    #             else:
-    #                 yield make_chunk(msg=msg.model_dump(),
-    #                                 metadata=metadata,
-    #                                 status="loading")
-    #
-    #         yield make_chunk(status="finished", meta=meta)
-    #     except Exception as e:
-    #         logger.error(f"Error streaming messages: {e}, {traceback.format_exc()}")
-    #         yield make_chunk(message=f"Error streaming messages: {e}", status="error")
-    #
-    # return StreamingResponse(stream_messages(), media_type='application/json')
 
 
 @chat.post("/agent_origin/{agent_name}")
