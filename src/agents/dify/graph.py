@@ -20,6 +20,7 @@ from src.agents.tools_factory import get_all_tools
 class DifyAgent(BaseAgent):
     name = "报告生成"
     description = "报告生成，聊天助手"
+    api_type = "openai"
     requirements = []
     config_schema = RagFlowConfiguration
 

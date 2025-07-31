@@ -20,6 +20,7 @@ from src.agents.tools_factory import get_all_tools
 class RagflowAgent(BaseAgent):
     name = "知识问答"
     description = "知识问答，聊天助手"
+    api_type = "ragflow"
     requirements = []
     config_schema = RagFlowConfiguration
 
