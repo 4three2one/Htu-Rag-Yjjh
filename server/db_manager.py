@@ -38,9 +38,7 @@ class DBManager:
         # 确保所有表都会被创建
         Base.metadata.create_all(self.engine)
         logger.info("Database tables created/checked")
-        
-        # 迁移现有数据
-        self.migrate_existing_data()
+
 
     def get_session(self):
         """获取数据库会话"""

@@ -149,10 +149,8 @@ async def api_update_database_info(
             db_manager.add_knowledge_hierarchy(db_id, parent_db_id, db_name=name)
         else:
             db_manager.add_knowledge_hierarchy(db_id, None, db_name=name)
-        
-        # 更新现有层级记录的数据库名称
-        db_manager.update_knowledge_hierarchy_db_name(db_id, name)
-        
+
+
         return {"message": "更新成功", "database": database}
     except HTTPException:
         raise
