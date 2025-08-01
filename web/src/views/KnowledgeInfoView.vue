@@ -1053,10 +1053,10 @@ function formatCreateTime(val) {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    width: 325px;
+    width: 40%;
     height: 100%;
     padding: 0;
-    flex: 0 0 325px;
+    flex: 0 0 40%;
 
     .sider-top {
       .query-params {

@@ -396,14 +396,14 @@ const parentOptions = computed(() => {
 }
 
 .knowledge-left {
-  flex: 8;
+  flex: 4;
   overflow-y: auto;
 }
 
 .knowledge-right {
-  flex: 2;
-  min-width: 250px;
-  max-width: 300px;
+  flex: 6;
+  min-width: 500px;
+  max-width: 600px;
 }
 
 // 层级预览样式
