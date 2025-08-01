@@ -2,7 +2,7 @@
   <div class="reference-sidebar-overlay" v-if="isOpen" @click="closeSidebar">
     <div class="reference-sidebar" @click.stop>
       <div class="sidebar-header">
-        <div class="header-title">📚 参考知识</div>
+        <div class="header-title">📚 参考信息</div>
         <div class="header-actions">
           <div class="close-btn" @click="closeSidebar">
             <CloseOutlined />

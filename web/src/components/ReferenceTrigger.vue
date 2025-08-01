@@ -2,7 +2,7 @@
   <div class="reference-trigger" v-if="hasValidReference">
     <button class="trigger-btn" @click="openReference">
       <FileTextOutlined />
-      <span class="trigger-text">查看参考信息</span>
+      <span class="trigger-text">参考信息</span>
 <!--      <span class="reference-count">{{ referenceCount }}</span>-->
     </button>
   </div>

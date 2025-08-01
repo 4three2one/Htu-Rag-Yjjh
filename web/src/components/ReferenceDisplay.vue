@@ -1,16 +1,16 @@
 <template>
   <div class="reference-display" v-if="referenceData">
-    <div class="reference-header" @click="toggleCollapse">
-      <div class="header-left">
-        <h4>📚 参考知识</h4>
-        <span class="reference-count<!---->"></span>
-      </div>
-      <div class="header-right">
-        <span class="collapse-icon" :class="{ 'collapsed': isCollapsed }">
-          ▼
-        </span>
-      </div>
-    </div>
+<!--    <div class="reference-header" @click="toggleCollapse">-->
+<!--      <div class="header-left">-->
+<!--        <h4>📚 参考知识</h4>-->
+<!--        <span class="reference-count&lt;!&ndash;&ndash;&gt;"></span>-->
+<!--      </div>-->
+<!--      <div class="header-right">-->
+<!--        <span class="collapse-icon" :class="{ 'collapsed': isCollapsed }">-->
+<!--          ▼-->
+<!--        </span>-->
+<!--      </div>-->
+<!--    </div>-->
 
 <!--    <div class="reference-summary" v-if="referenceData.doc_aggs && referenceData.doc_aggs.length > 0"
          v-show="!isCollapsed">
@@ -26,7 +26,7 @@
       </div>
     </div>-->
 
-    <div class="reference-list" v-show="!isCollapsed">
+    <div class="reference-list">
       <div
           v-for="(chunk, index) in referenceData.chunks"
           :key="chunk.id"
