@@ -100,6 +100,17 @@ class DBManager:
             results = session.query(KnowledgeHierarchy).all()
             return [result.to_dict() for result in results]  # 返回字典列表
 
+    def update_knowledge_hierarchy_db_name(self, db_id, db_name):
+        """更新知识库层级记录的数据库名称"""
+        with self.get_session_context() as session:
+            hierarchy = session.query(KnowledgeHierarchy).filter_by(db_id=db_id).first()
+            if hierarchy:
+                hierarchy.db_name = db_name
+                session.commit()
+                logger.info(f"Updated hierarchy {db_id} db_name to: {db_name}")
+                return True
+            return False
+
     def add_ragflow(self, thread_id, chat_id=None, session_id=None):
         """新增 ragflow 记录"""
         with self.get_session_context() as session:

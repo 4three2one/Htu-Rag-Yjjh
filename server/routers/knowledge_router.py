@@ -20,7 +20,26 @@ data = APIRouter(prefix="/knowledge")
 async def api_get_databases(current_user: User = Depends(get_admin_user)):
     try:
         database = await list_datasets_http()
-        pass
+        
+        # 遍历数据库，检查并确保每个数据库在 knowledge_hierarchy 表中都有记录
+        for db_info in database:
+            db_id = db_info.get('id')
+            db_name = db_info.get('name')
+            
+            if db_id:
+                # 检查是否已存在 hierarchy 记录
+                existing_hierarchy = db_manager.get_knowledge_hierarchy(db_id)
+                
+                if not existing_hierarchy:
+                    # 如果不存在，则插入一条记录（默认为顶级节点）
+                    logger.info(f"为数据库 {db_id} ({db_name}) 创建 hierarchy 记录")
+                    db_manager.add_knowledge_hierarchy(db_id, None, db_name=db_name)
+                else:
+                    # 如果存在但 db_name 为空，则更新 db_name
+                    if not existing_hierarchy.get('db_name'):
+                        logger.info(f"更新数据库 {db_id} 的 db_name: {db_name}")
+                        db_manager.update_knowledge_hierarchy_db_name(db_id, db_name)
+        
     except Exception as e:
         logger.error(f"获取数据库列表失败 {e}, {traceback.format_exc()}")
         return {"message": f"获取数据库列表失败 {e}", "knowledge_items": []}
