@@ -20,7 +20,7 @@ data = APIRouter(prefix="/hierarchy")
 async def add_knowledge_hierarchy(
         db_id: str = Body(...),
         parent_db_id: str = Body(None),
-        order: int = Body(0),
+        order: int = Body(999),
         db_name: str = Body(None),
         current_user: User = Depends(get_admin_user)
 ):

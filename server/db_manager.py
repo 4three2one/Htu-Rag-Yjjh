@@ -67,7 +67,7 @@ class DBManager:
         finally:
             session.close()
 
-    def add_knowledge_hierarchy(self, db_id, parent_db_id=None, order=0, db_name=None):
+    def add_knowledge_hierarchy(self, db_id, parent_db_id=None, order=999, db_name=None):
         """添加知识库层级关系"""
         with self.get_session_context() as session:
             hierarchy = KnowledgeHierarchy(db_id=db_id, parent_db_id=parent_db_id, order=order, db_name=db_name)
@@ -84,7 +84,7 @@ class DBManager:
     def get_children_knowledge(self, parent_db_id):
         """获取某父级下的所有子知识库"""
         with self.get_session_context() as session:
-            results = session.query(KnowledgeHierarchy).filter_by(parent_db_id=parent_db_id).all()
+            results = session.query(KnowledgeHierarchy).filter_by(parent_db_id=parent_db_id).order_by(KnowledgeHierarchy.order).all()
             return [result.to_dict() for result in results]  # 返回字典列表
 
     def delete_knowledge_hierarchy(self, db_id):
@@ -97,7 +97,7 @@ class DBManager:
     def get_all_knowledge_hierarchy(self):
         """获取所有知识库层级关系"""
         with self.get_session_context() as session:
-            results = session.query(KnowledgeHierarchy).all()
+            results = session.query(KnowledgeHierarchy).order_by(KnowledgeHierarchy.order).all()
             return [result.to_dict() for result in results]  # 返回字典列表
 
     def update_knowledge_hierarchy_db_name(self, db_id, db_name):

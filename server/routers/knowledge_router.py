@@ -58,9 +58,9 @@ async def api_create_database(
         newly_dataset = create_dataset(knowledge_name, description)
         # 插入层次关系
         if parent_db_id and parent_db_id != "null" and parent_db_id != "undefined":
-            db_manager.add_knowledge_hierarchy(newly_dataset['id'], parent_db_id, db_name=knowledge_name)
+            db_manager.add_knowledge_hierarchy(newly_dataset['id'], parent_db_id, order=999, db_name=knowledge_name)
         else:
-            db_manager.add_knowledge_hierarchy(newly_dataset['id'], None, db_name=knowledge_name)
+            db_manager.add_knowledge_hierarchy(newly_dataset['id'], None, order=999, db_name=knowledge_name)
     except HTTPException:
         raise
     except Exception as e:
@@ -165,9 +165,9 @@ async def api_update_database_info(
         # 更新层次结构
         db_manager.delete_knowledge_hierarchy(db_id)
         if parent_db_id and parent_db_id != "null" and parent_db_id != "undefined":
-            db_manager.add_knowledge_hierarchy(db_id, parent_db_id, db_name=name)
+            db_manager.add_knowledge_hierarchy(db_id, parent_db_id, order=999, db_name=name)
         else:
-            db_manager.add_knowledge_hierarchy(db_id, None, db_name=name)
+            db_manager.add_knowledge_hierarchy(db_id, None, order=999, db_name=name)
 
 
         return {"message": "更新成功", "database": database}

@@ -156,11 +156,41 @@ const loadKnowledgeItems = async () => {
     const data = await knowledgeManagementApi.getKnowledge()
     console.log('API返回数据:', data)
     console.log('knowledge_items:', data.knowledge_items)
-    // 过滤掉名称为“引江济淮知识库”的项，并将包含“其他”的项排到最后
+    
+    // 获取层级数据用于排序
+    let hierarchyData = []
+    try {
+      const hierarchyResponse = await knowledgeHierarchyApi.getAllKnowledgeHierarchy()
+      hierarchyData = hierarchyResponse.all_hierarchy || []
+    } catch (error) {
+      console.warn('获取层级数据失败，将使用默认排序:', error)
+    }
+    
+    // 过滤掉名称为"test"的项
     const filtered = (data.knowledge_items || []).filter(item => item.name !== 'test')
-    const others = filtered.filter(item => item.name.includes('其他'))
-    const normal = filtered.filter(item => !item.name.includes('其他'))
-    knowledgeItems.value = [...normal, ...others]
+    
+    // 根据层级数据中的 order 字段排序
+    if (hierarchyData.length > 0) {
+      // 创建层级数据映射
+      const hierarchyMap = new Map()
+      hierarchyData.forEach(hierarchy => {
+        hierarchyMap.set(hierarchy.db_id, hierarchy)
+      })
+      
+      // 按 order 字段排序，order 值越小越靠前
+      filtered.sort((a, b) => {
+        const aOrder = hierarchyMap.get(a.db_id)?.order || 999
+        const bOrder = hierarchyMap.get(b.db_id)?.order || 999
+        return aOrder - bOrder
+      })
+    } else {
+      // 如果没有层级数据，将包含"其他"的项排到最后
+      const others = filtered.filter(item => item.name.includes('其他'))
+      const normal = filtered.filter(item => !item.name.includes('其他'))
+      filtered.splice(0, filtered.length, ...normal, ...others)
+    }
+    
+    knowledgeItems.value = filtered
     console.log('设置后的knowledgeItems:', knowledgeItems.value)
     
     // 加载层级结构

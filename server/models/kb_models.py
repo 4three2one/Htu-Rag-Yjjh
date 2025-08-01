@@ -112,7 +112,7 @@ class KnowledgeHierarchy(Base):
     db_id = Column(String, nullable=False, index=True, comment="知识库ID")
     db_name = Column(String, nullable=True, comment="知识库名称")
     parent_db_id = Column(String, nullable=True, index=True, comment="父级知识库ID")
-    order = Column(Integer, nullable=True, default=0, comment="排序")
+    order = Column(Integer, nullable=True, default=999, comment="排序")
     created_at = Column(DateTime, default=func.now(), comment="创建时间")
 
     def to_dict(self):
