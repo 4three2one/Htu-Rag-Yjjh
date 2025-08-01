@@ -38,6 +38,9 @@ class DBManager:
         # 确保所有表都会被创建
         Base.metadata.create_all(self.engine)
         logger.info("Database tables created/checked")
+        
+        # 迁移现有数据
+        self.migrate_existing_data()
 
     def get_session(self):
         """获取数据库会话"""
@@ -66,10 +69,10 @@ class DBManager:
         finally:
             session.close()
 
-    def add_knowledge_hierarchy(self, db_id, parent_db_id=None, order=0):
+    def add_knowledge_hierarchy(self, db_id, parent_db_id=None, order=0, db_name=None):
         """添加知识库层级关系"""
         with self.get_session_context() as session:
-            hierarchy = KnowledgeHierarchy(db_id=db_id, parent_db_id=parent_db_id, order=order)
+            hierarchy = KnowledgeHierarchy(db_id=db_id, parent_db_id=parent_db_id, order=order, db_name=db_name)
             session.add(hierarchy)
             session.commit()
             return hierarchy.to_dict()  # 返回字典格式

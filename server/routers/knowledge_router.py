@@ -20,6 +20,7 @@ data = APIRouter(prefix="/knowledge")
 async def api_get_databases(current_user: User = Depends(get_admin_user)):
     try:
         database = await list_datasets_http()
+        pass
     except Exception as e:
         logger.error(f"获取数据库列表失败 {e}, {traceback.format_exc()}")
         return {"message": f"获取数据库列表失败 {e}", "knowledge_items": []}
@@ -38,9 +39,9 @@ async def api_create_database(
         newly_dataset = create_dataset(knowledge_name, description)
         # 插入层次关系
         if parent_db_id and parent_db_id != "null" and parent_db_id != "undefined":
-            db_manager.add_knowledge_hierarchy(newly_dataset['id'], parent_db_id)
+            db_manager.add_knowledge_hierarchy(newly_dataset['id'], parent_db_id, db_name=knowledge_name)
         else:
-            db_manager.add_knowledge_hierarchy(newly_dataset['id'], None)
+            db_manager.add_knowledge_hierarchy(newly_dataset['id'], None, db_name=knowledge_name)
     except HTTPException:
         raise
     except Exception as e:
@@ -145,9 +146,13 @@ async def api_update_database_info(
         # 更新层次结构
         db_manager.delete_knowledge_hierarchy(db_id)
         if parent_db_id and parent_db_id != "null" and parent_db_id != "undefined":
-            db_manager.add_knowledge_hierarchy(db_id, parent_db_id)
+            db_manager.add_knowledge_hierarchy(db_id, parent_db_id, db_name=name)
         else:
-            db_manager.add_knowledge_hierarchy(db_id, None)
+            db_manager.add_knowledge_hierarchy(db_id, None, db_name=name)
+        
+        # 更新现有层级记录的数据库名称
+        db_manager.update_knowledge_hierarchy_db_name(db_id, name)
+        
         return {"message": "更新成功", "database": database}
     except HTTPException:
         raise

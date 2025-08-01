@@ -110,6 +110,7 @@ class KnowledgeHierarchy(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     db_id = Column(String, nullable=False, index=True, comment="知识库ID")
+    db_name = Column(String, nullable=True, comment="知识库名称")
     parent_db_id = Column(String, nullable=True, index=True, comment="父级知识库ID")
     order = Column(Integer, nullable=True, default=0, comment="排序")
     created_at = Column(DateTime, default=func.now(), comment="创建时间")
@@ -118,6 +119,7 @@ class KnowledgeHierarchy(Base):
         return {
             "id": self.id,
             "db_id": self.db_id,
+            "db_name": self.db_name,
             "parent_db_id": self.parent_db_id,
             "order": self.order,
             "created_at": self.created_at.isoformat() if self.created_at else None

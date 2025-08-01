@@ -21,10 +21,11 @@ async def add_knowledge_hierarchy(
         db_id: str = Body(...),
         parent_db_id: str = Body(None),
         order: int = Body(0),
+        db_name: str = Body(None),
         current_user: User = Depends(get_admin_user)
 ):
     try:
-        hierarchy = db_manager.add_knowledge_hierarchy(db_id, parent_db_id, order)
+        hierarchy = db_manager.add_knowledge_hierarchy(db_id, parent_db_id, order, db_name)
         return {"message": "添加成功", "hierarchy": hierarchy}  # 直接返回，因为已经是字典了
     except Exception as e:
         logger.error(f"添加知识库层级失败 {e}, {traceback.format_exc()}")
