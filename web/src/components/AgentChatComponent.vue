@@ -19,6 +19,14 @@
       }"
     />
     <div class="sidebar-backdrop" v-if="state.isSidebarOpen && isSmallContainer" @click="toggleSidebar"></div>
+    
+    <!-- 弹出式参考边栏 -->
+    <ReferenceSidebar
+      :reference="currentReference"
+      :is-open="state.isReferenceSidebarOpen"
+      @close-sidebar="closeReferenceSidebar"
+    />
+    
     <div class="chat">
       <div class="chat-header">
         <div class="header__left">
@@ -84,6 +92,12 @@
             :show-refs="['model', 'copy']"
             :is-latest-message="false"
           />
+          <!-- 参考信息触发按钮 -->
+          <ReferenceTrigger
+            v-if="getLastMessage(conv)"
+            :reference="getLastMessage(conv).reference"
+            @open-reference="openReferenceSidebar"
+          />
         </div>
         <div class="conv-box" v-if="onGoingConv.messages.length > 0">
           <AgentMessageComponent
@@ -96,6 +110,12 @@
             @retry="retryMessage(message)"
           >
           </AgentMessageComponent>
+          <!-- 参考信息触发按钮 -->
+          <ReferenceTrigger
+            v-if="getLastMessage(onGoingConv)"
+            :reference="getLastMessage(onGoingConv).reference"
+            @open-reference="openReferenceSidebar"
+          />
         </div>
 
         <!-- 生成中的加载状态 -->
@@ -132,11 +152,13 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch, nextTick, computed, onUnmounted, toRaw } from 'vue';
-import { ShareAltOutlined, LoadingOutlined } from '@ant-design/icons-vue';
+import { ShareAltOutlined, LoadingOutlined, FileTextOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import MessageInputComponent from '@/components/MessageInputComponent.vue'
 import AgentMessageComponent from '@/components/AgentMessageComponent.vue'
 import ChatSidebarComponent from '@/components/ChatSidebarComponent.vue'
+import ReferenceSidebar from '@/components/ReferenceSidebar.vue'
+import ReferenceTrigger from '@/components/ReferenceTrigger.vue'
 import RefsComponent from '@/components/RefsComponent.vue'
 import { chatApi, threadApi } from '@/apis/auth_api'
 import { PanelLeftOpen, MessageSquarePlus } from 'lucide-vue-next';
@@ -164,6 +186,8 @@ const state = reactive({
   ...props.state,
   debug_mode: computed(() => props.state.debug_mode ?? false),
   isSidebarOpen: localStorage.getItem('chat_sidebar_open') === 'true' || false,
+  isReferenceSidebarOpen: false,
+  currentReference: null,
   waitingServerResponse: false,
   isProcessingRequest: false,
   creatingNewChat: false,
@@ -1309,6 +1333,24 @@ const toggleSidebar = () => {
   console.log("toggleSidebar", state.isSidebarOpen);
 }
 
+// 打开参考侧边栏
+const openReferenceSidebar = (reference) => {
+  state.currentReference = reference;
+  state.isReferenceSidebarOpen = true;
+  console.log("openReferenceSidebar", reference);
+}
+
+// 关闭参考侧边栏
+const closeReferenceSidebar = () => {
+  state.isReferenceSidebarOpen = false;
+  console.log("closeReferenceSidebar");
+}
+
+// 获取当前参考数据
+const currentReference = computed(() => {
+  return state.currentReference;
+});
+
 // 处理键盘事件
 const handleKeyDown = (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -1837,6 +1879,8 @@ const mergeMessageChunk = (chunks) => {
       }
     }
   }
+
+
 }
 
 @media (max-width: 520px) {
@@ -1877,6 +1921,8 @@ const mergeMessageChunk = (chunks) => {
       transform: translateX(-100%);
     }
   }
+
+
 }
 
 .hide-text {

@@ -70,8 +70,7 @@
         <RefsComponent :message="message" :show-refs="showRefs" :is-latest-message="isLatestMessage" @retry="emit('retry')" @openRefs="emit('openRefs', $event)" />
       </div>
       
-      <!-- 显示引用信息 -->
-      <ReferenceDisplay v-if="hasValidReference" :reference="message.reference" />
+      <!-- 引用信息现在在侧边栏中显示 -->
       
       <!-- 调试信息 -->
 <!--      <div v-if="debugMode && message.reference" class="debug-reference">
@@ -94,7 +93,6 @@ import { CaretRightOutlined, ThunderboltOutlined, LoadingOutlined } from '@ant-d
 import RefsComponent from '@/components/RefsComponent.vue'
 import { Loader, CircleCheckBig } from 'lucide-vue-next';
 import { ToolResultRenderer } from '@/components/ToolCallingResult'
-import ReferenceDisplay from '@/components/ReferenceDisplay.vue'
 
 
 import { MdPreview } from 'md-editor-v3'

@@ -315,24 +315,25 @@ const openFilePreview = async (chunk) => {
 
 <style lang="less" scoped>
 .reference-display {
-  margin-top: 16px;
+  margin-top: 0;
   padding: 0;
-  background-color: var(--gray-50);
-  border-radius: 12px;
-  border: 1px solid var(--gray-200);
+  background-color: transparent;
+  border-radius: 0;
+  border: none;
 
   .reference-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
+    padding: 8px 0;
+    border-radius: 0;
     transition: background-color 0.2s ease;
+    border-bottom: 1px solid var(--gray-200);
 
     &:hover {
-      background-color: var(--gray-100);
+      background-color: transparent;
     }
 
     .header-left {
@@ -380,6 +381,7 @@ const openFilePreview = async (chunk) => {
     border: 1px solid var(--gray-200);
     border-radius: 8px;
     padding: 12px;
+    margin-bottom: 12px;
     transition: all 0.2s ease;
 
     &:hover {
