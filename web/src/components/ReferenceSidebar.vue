@@ -93,7 +93,7 @@ const referenceData = computed(() => {
   animation: fadeIn 0.3s ease;
 
   .reference-sidebar {
-    width: 400px;
+    width: 500px;
     max-width: 90vw;
     height: 100%;
     background-color: white;
