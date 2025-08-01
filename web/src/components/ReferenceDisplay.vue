@@ -46,18 +46,16 @@
         </div>
 
         <div class="reference-content">
-          <div class="content-text" v-if="chunk.content">
-            {{ chunk.content }}
+          <div class="content-text" v-if="chunk.content" v-html="renderMarkdown(chunk.content)"></div>
+          <div class="content-image" v-if="chunk.doc_type === 'image'">
+            <img
+              v-if="chunk.image_id"
+              :src="getImageUrl(chunk.image_id)"
+              class="reference-image"
+              @click="openImageModal(chunk.image_id, chunk.document_name)"
+              :alt="chunk.document_name"
+            />
           </div>
-            <div class="content-image" v-if="chunk.doc_type === 'image'">
-              <img
-                v-if="chunk.image_id"
-                :src="getImageUrl(chunk.image_id)"
-                class="reference-image"
-                @click="openImageModal(chunk.image_id, chunk.document_name)"
-                :alt="chunk.document_name"
-              />
-            </div>
         </div>
 
         <!--        <div class="reference-footer">
@@ -103,6 +101,7 @@ import {computed, ref, onMounted, onUnmounted} from 'vue'
 import { useRouter } from 'vue-router'
 import { chatApi } from '@/apis/auth_api'
 import { message } from 'ant-design-vue'
+import { marked } from 'marked'
 
 const props = defineProps({
   reference: {
@@ -231,6 +230,17 @@ const getImageUrl = (imageId) => {
   // 这里需要根据你的实际API来构建图片URL
   // 例如: `/api/images/${imageId}`
   return `http://192.168.1.118:7080/v1/document/image/${imageId}`
+}
+
+// Markdown 渲染函数
+const renderMarkdown = (content) => {
+  if (!content) return ''
+  try {
+    return marked(content)
+  } catch (error) {
+    console.error('Markdown 渲染失败:', error)
+    return content
+  }
 }
 
 // 下载文件
@@ -449,16 +459,104 @@ const openFilePreview = async (chunk) => {
       margin-bottom: 8px;
 
       .content-text {
-        font-size: 13px;
-        line-height: 1.5;
+        font-size: 11px;
+        line-height: 1.4;
         color: var(--gray-700);
         background-color: var(--gray-100);
         padding: 8px;
         border-radius: 4px;
-        white-space: pre-wrap;
         word-break: break-word;
         max-height: 120px;
         overflow-y: auto;
+        
+        // Markdown 样式
+        :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+          margin: 8px 0 4px 0;
+          font-weight: 600;
+          color: var(--gray-800);
+        }
+        
+        :deep(h1) { font-size: 14px; }
+        :deep(h2) { font-size: 13px; }
+        :deep(h3) { font-size: 12px; }
+        :deep(h4), :deep(h5), :deep(h6) { font-size: 11px; }
+        
+        :deep(p) {
+          margin: 4px 0;
+          line-height: 1.4;
+        }
+        
+        :deep(ul), :deep(ol) {
+          margin: 4px 0;
+          padding-left: 16px;
+        }
+        
+        :deep(li) {
+          margin: 2px 0;
+        }
+        
+        :deep(code) {
+          background-color: var(--gray-200);
+          padding: 1px 3px;
+          border-radius: 2px;
+          font-family: 'Courier New', monospace;
+          font-size: 10px;
+        }
+        
+        :deep(pre) {
+          background-color: var(--gray-200);
+          padding: 6px;
+          border-radius: 4px;
+          overflow-x: auto;
+          margin: 4px 0;
+          
+          code {
+            background-color: transparent;
+            padding: 0;
+          }
+        }
+        
+        :deep(blockquote) {
+          border-left: 3px solid var(--gray-300);
+          padding-left: 8px;
+          margin: 4px 0;
+          color: var(--gray-600);
+        }
+        
+        :deep(strong) {
+          font-weight: 600;
+        }
+        
+        :deep(em) {
+          font-style: italic;
+        }
+        
+        :deep(a) {
+          color: var(--main-600);
+          text-decoration: none;
+          
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+        
+        :deep(table) {
+          border-collapse: collapse;
+          width: 100%;
+          margin: 4px 0;
+          font-size: 10px;
+        }
+        
+        :deep(th), :deep(td) {
+          border: 1px solid var(--gray-300);
+          padding: 2px 4px;
+          text-align: left;
+        }
+        
+        :deep(th) {
+          background-color: var(--gray-200);
+          font-weight: 600;
+        }
       }
 
       .content-image {
