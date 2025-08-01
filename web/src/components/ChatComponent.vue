@@ -923,7 +923,7 @@ const findLastIndex = (array, predicate) => {
 
 .chat-box {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   flex-grow: 1;
   padding: 1rem 2rem;
@@ -932,7 +932,7 @@ const findLastIndex = (array, predicate) => {
   transition: max-width 0.3s ease;
 
   &.wide-screen {
-    max-width: 1200px;
+    max-width: 1400px;
   }
 
   &.font-smaller {
@@ -961,13 +961,13 @@ const findLastIndex = (array, predicate) => {
 
   .message-input-wrapper {
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     background-color: white;
     animation: width 0.3s ease-in-out;
 
     &.wide-screen {
-      max-width: 1200px;
+      max-width: 1400px;
     }
 
     .opt-item {

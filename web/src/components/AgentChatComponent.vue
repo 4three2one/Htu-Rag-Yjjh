@@ -1614,7 +1614,7 @@ const mergeMessageChunk = (chunks) => {
 
 .chat-box {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   flex-grow: 1;
   padding: 1rem 2rem;
@@ -1652,7 +1652,7 @@ const mergeMessageChunk = (chunks) => {
 
   .message-input-wrapper {
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
 
     .bottom-actions {
