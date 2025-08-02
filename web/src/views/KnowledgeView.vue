@@ -30,8 +30,38 @@
 
     <!-- 左右分栏布局 -->
     <div class="knowledge-layout">
-      <!-- 左侧内容区域 (8/10) -->
+      <!-- 左侧层级结构区域 -->
       <div class="knowledge-left">
+        <div class="hierarchy-preview">
+          <h3 class="hierarchy-title">知识库结构</h3>
+          <div class="hierarchy-content">
+            <div v-if="state.loading" class="hierarchy-loading">
+              <p>加载层级结构中...</p>
+            </div>
+            <a-tree
+              v-else-if="hierarchyTreeData.length > 0"
+              :tree-data="hierarchyTreeData"
+              :default-expand-all="true"
+              :show-line="true"
+              :show-icon="true"
+              class="hierarchy-tree"
+              @select="handleTreeSelect"
+            >
+              <template #title="{ title, key }">
+                <span class="tree-node-title clickable" :class="{ 'root-node': key === 'root' }">{{ title }}</span>
+              </template>
+            </a-tree>
+            <div v-else class="hierarchy-empty">
+              <p>暂无层级结构</p>
+              <p class="hierarchy-tip">创建知识项时可选择父级来构建层级关系</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧知识库列表区域 -->
+      <div class="knowledge-right">
+        <h3 class="knowledge-list-title">知识库列表</h3>
         <div class="knowledge-items">
           <!-- 调试信息 -->
           <div v-if="knowledgeItems.length === 0" style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #666;">
@@ -70,38 +100,6 @@
               <!-- <span class="meta-embed">
                 <a-tag color="blue" v-if="knowledge.embed_info && knowledge.embed_info.name">{{ knowledge.embed_info.name }}</a-tag>
               </span> -->
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 右侧层级预览区域 (2/10) -->
-      <div class="knowledge-right">
-        <div class="hierarchy-preview">
-<!--          <h3 class="hierarchy-title">结构预览</h3>-->
-<!--          <div class="hierarchy-tip">-->
-<!--            <small>💡 点击"引江济淮知识库"返回首页，点击其他知识库名称跳转到详情页</small>-->
-<!--          </div>-->
-          <div class="hierarchy-content">
-            <div v-if="state.loading" class="hierarchy-loading">
-              <p>加载层级结构中...</p>
-            </div>
-            <a-tree
-              v-else-if="hierarchyTreeData.length > 0"
-              :tree-data="hierarchyTreeData"
-              :default-expand-all="true"
-              :show-line="true"
-              :show-icon="true"
-              class="hierarchy-tree"
-              @select="handleTreeSelect"
-            >
-              <template #title="{ title, key }">
-                <span class="tree-node-title clickable" :class="{ 'root-node': key === 'root' }">{{ title }}</span>
-              </template>
-            </a-tree>
-            <div v-else class="hierarchy-empty">
-              <p>暂无层级结构</p>
-              <p class="hierarchy-tip">创建知识项时可选择父级来构建层级关系</p>
             </div>
           </div>
         </div>
@@ -477,14 +475,15 @@ const parentOptions = computed(() => {
 }
 
 .knowledge-left {
-  flex: 4;
+  flex: 3;
   overflow-y: auto;
+  min-width: 300px;
+  max-width: 400px;
 }
 
 .knowledge-right {
-  flex: 6;
-  min-width: 500px;
-  max-width: 600px;
+  flex: 7;
+  overflow-y: auto;
 }
 
 // 层级预览样式
@@ -502,6 +501,14 @@ const parentOptions = computed(() => {
   padding: 16px 20px 8px 20px;
   margin: 0;
   border-bottom: 1px solid #f0f0f0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.knowledge-list-title {
+  padding: 16px 20px 8px 20px;
+  margin: 0 0 20px 0;
   font-size: 16px;
   font-weight: 600;
   color: #333;
