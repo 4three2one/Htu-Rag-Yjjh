@@ -1582,7 +1582,7 @@ const mergeMessageChunk = (chunks) => {
 
       img {
         width: 50px;
-        height: 50px;
+        height: 45px;
       }
 
       h1 {
