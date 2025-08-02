@@ -79,6 +79,9 @@
       <div class="knowledge-right">
         <div class="hierarchy-preview">
           <h3 class="hierarchy-title">结构预览</h3>
+          <div class="hierarchy-tip">
+            <small>💡 点击知识库名称可直接跳转到详情页</small>
+          </div>
           <div class="hierarchy-content">
             <div v-if="state.loading" class="hierarchy-loading">
               <p>加载层级结构中...</p>
@@ -90,9 +93,10 @@
               :show-line="true"
               :show-icon="true"
               class="hierarchy-tree"
+              @select="handleTreeSelect"
             >
               <template #title="{ title, key }">
-                <span class="tree-node-title">{{ title }}</span>
+                <span class="tree-node-title clickable">{{ title }}</span>
               </template>
             </a-tree>
             <div v-else class="hierarchy-empty">
@@ -381,6 +385,23 @@ const navigateToKnowledge = (knowledgeId) => {
   router.push({ path: `/knowledge/${knowledgeId}` });
 };
 
+// 处理树节点点击事件
+const handleTreeSelect = (selectedKeys, info) => {
+  if (selectedKeys.length > 0) {
+    const selectedKey = selectedKeys[0]
+    console.log('点击的树节点:', selectedKey)
+    
+    // 检查是否是有效的知识库ID
+    const knowledgeItem = knowledgeItems.value.find(item => item.db_id === selectedKey)
+    if (knowledgeItem) {
+      console.log('跳转到知识库:', knowledgeItem.name)
+      navigateToKnowledge(selectedKey)
+    } else {
+      console.warn('未找到对应的知识库:', selectedKey)
+    }
+  }
+}
+
 function formatCreateTime(val) {
   if (!val) return '-';
   // 支持时间戳（秒/毫秒）或 ISO 字符串
@@ -448,12 +469,23 @@ const parentOptions = computed(() => {
 }
 
 .hierarchy-title {
-  padding: 16px 20px;
+  padding: 16px 20px 8px 20px;
   margin: 0;
   border-bottom: 1px solid #f0f0f0;
   font-size: 16px;
   font-weight: 600;
   color: #333;
+}
+
+.hierarchy-tip {
+  padding: 8px 20px;
+  background-color: #f6ffed;
+  border-bottom: 1px solid #f0f0f0;
+  
+  small {
+    color: #52c41a;
+    font-size: 12px;
+  }
 }
 
 .hierarchy-content {
@@ -466,6 +498,30 @@ const parentOptions = computed(() => {
   .tree-node-title {
     font-size: 14px;
     color: #333;
+    
+    &.clickable {
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 2px 4px;
+      border-radius: 4px;
+      
+      &:hover {
+        color: #1890ff;
+        background-color: #f0f8ff;
+        text-decoration: none;
+      }
+      
+      &:active {
+        background-color: #e6f7ff;
+      }
+    }
+  }
+  
+  // 为树节点添加更好的视觉反馈
+  :deep(.ant-tree-node-content-wrapper) {
+    &:hover {
+      background-color: transparent;
+    }
   }
 }
 
