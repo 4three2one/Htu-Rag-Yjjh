@@ -78,10 +78,10 @@
       <!-- 右侧层级预览区域 (2/10) -->
       <div class="knowledge-right">
         <div class="hierarchy-preview">
-          <h3 class="hierarchy-title">结构预览</h3>
-          <div class="hierarchy-tip">
-            <small>💡 点击知识库名称可直接跳转到详情页</small>
-          </div>
+<!--          <h3 class="hierarchy-title">结构预览</h3>-->
+<!--          <div class="hierarchy-tip">-->
+<!--            <small>💡 点击"引江济淮知识库"返回首页，点击其他知识库名称跳转到详情页</small>-->
+<!--          </div>-->
           <div class="hierarchy-content">
             <div v-if="state.loading" class="hierarchy-loading">
               <p>加载层级结构中...</p>
@@ -96,7 +96,7 @@
               @select="handleTreeSelect"
             >
               <template #title="{ title, key }">
-                <span class="tree-node-title clickable">{{ title }}</span>
+                <span class="tree-node-title clickable" :class="{ 'root-node': key === 'root' }">{{ title }}</span>
               </template>
             </a-tree>
             <div v-else class="hierarchy-empty">
@@ -229,7 +229,14 @@ const loadHierarchyStructure = async () => {
         children: []
       }))
       console.log('平铺的树形数据:', flatTreeData)
-      hierarchyTreeData.value = flatTreeData
+      
+      // 添加固定的顶层节点
+      const rootNode = {
+        key: 'root',
+        title: '引江济淮知识库',
+        children: flatTreeData
+      }
+      hierarchyTreeData.value = [rootNode]
     }
   } catch (error) {
     console.error('加载层级结构失败:', error)
@@ -240,7 +247,14 @@ const loadHierarchyStructure = async () => {
       children: []
     }))
     console.log('回退的树形数据:', fallbackTreeData)
-    hierarchyTreeData.value = fallbackTreeData
+    
+    // 添加固定的顶层节点
+    const rootNode = {
+      key: 'root',
+      title: '引江济淮知识库',
+      children: fallbackTreeData
+    }
+    hierarchyTreeData.value = [rootNode]
   }
 }
 
@@ -311,7 +325,16 @@ const buildHierarchyTree = (hierarchyList, knowledgeItems) => {
   })
 
   console.log('最终树形数据:', treeData)
-  return treeData
+  
+  // 添加固定的顶层节点
+  const rootNode = {
+    key: 'root',
+    title: '引江济淮知识库',
+    children: treeData
+  }
+  
+  console.log('添加顶层节点后的树形数据:', [rootNode])
+  return [rootNode]
 }
 
 // 递归构建子节点
@@ -390,6 +413,13 @@ const handleTreeSelect = (selectedKeys, info) => {
   if (selectedKeys.length > 0) {
     const selectedKey = selectedKeys[0]
     console.log('点击的树节点:', selectedKey)
+    
+    // 检查是否是顶层节点
+    if (selectedKey === 'root') {
+      console.log('点击顶层节点，跳转到知识管理首页')
+      router.push('/knowledge')
+      return
+    }
     
     // 检查是否是有效的知识库ID
     const knowledgeItem = knowledgeItems.value.find(item => item.db_id === selectedKey)
@@ -513,6 +543,17 @@ const parentOptions = computed(() => {
       
       &:active {
         background-color: #e6f7ff;
+      }
+      
+      &.root-node {
+        font-weight: 600;
+        color: #1890ff;
+        font-size: 15px;
+        
+        &:hover {
+          color: #40a9ff;
+          background-color: #e6f7ff;
+        }
       }
     }
   }
