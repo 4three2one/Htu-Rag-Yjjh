@@ -312,11 +312,11 @@ div.header, #app-router-view {
   .tool-bar-text {
     color: white;
     font-weight: bold;
-    font-size: 16px;  // 从11px增大到13px
+    font-size: 18px;  // 从11px增大到13px
     white-space: nowrap;  // 强制一行显示
     text-align: left;  // 改为靠左对齐
-    margin: 8px 0;
-    padding: 0 8px;   // 增加左边距
+    margin: 8px -10px;
+    padding: 0 0px;   // 增加左边距
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.3;
